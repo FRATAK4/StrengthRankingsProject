@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from exercises.models import Exercise
+
+
 class TrainingPlan(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
@@ -21,3 +24,9 @@ class Workout(models.Model):
     description = models.CharField(max_length=2000)
     day = models.CharField(max_length=30, choices=Days.choices)
     training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE)
+
+class ExerciseSet(models.Model):
+    set_index = models.IntegerField()
+    repetitions = models.IntegerField()
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
