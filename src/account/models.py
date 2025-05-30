@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Profile(models.Model):
     class Genders(models.TextChoices):
@@ -10,3 +11,4 @@ class Profile(models.Model):
     gender = models.CharField(max_length=30, choices=Genders.choices)
     age = models.IntegerField()
     bodyweight = models.DecimalField(decimal_places=1)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
