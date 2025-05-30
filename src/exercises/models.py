@@ -7,3 +7,4 @@ class Exercise(models.Model):
         SQUAT = 'squat'
 
     name = models.CharField(max_length=50, choices=Exercises.choices)
+    description = models.CharField(max_length=2000)
