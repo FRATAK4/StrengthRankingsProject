@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'exercises.apps.ExercisesConfig',
     'account.apps.AccountConfig',
     'analytics.apps.AnalyticsConfig',
     'groups.apps.GroupsConfig',
