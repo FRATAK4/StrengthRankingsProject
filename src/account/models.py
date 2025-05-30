@@ -10,5 +10,5 @@ class Profile(models.Model):
     image = models.ImageField(default='profile_pics/default.jpg', upload_to='profile_pics')
     gender = models.CharField(max_length=30, choices=Genders.choices)
     age = models.IntegerField()
-    bodyweight = models.DecimalField(decimal_places=1)
+    bodyweight = models.DecimalField(max_digits=4, decimal_places=1)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
