@@ -8,7 +8,7 @@ class TrainingPlan(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
     is_active = models.BooleanField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_plans')
 
 class Workout(models.Model):
     class Days(models.TextChoices):
@@ -23,10 +23,10 @@ class Workout(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
     day = models.CharField(max_length=30, choices=Days.choices)
-    training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE)
+    training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE, related_name='workouts')
 
 class ExerciseSet(models.Model):
     set_index = models.IntegerField()
     repetitions = models.IntegerField()
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='exercise_sets_using')
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='exercise_sets')

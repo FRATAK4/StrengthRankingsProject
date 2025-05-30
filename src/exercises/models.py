@@ -20,4 +20,4 @@ class MuscleActivation(models.Model):
 
     muscle = models.CharField(max_length=50, choices=Muscles.choices)
     activation_level = models.IntegerField()
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='muscles_activation')

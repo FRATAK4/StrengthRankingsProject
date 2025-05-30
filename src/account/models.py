@@ -11,4 +11,4 @@ class Profile(models.Model):
     gender = models.CharField(max_length=30, choices=Genders.choices)
     age = models.IntegerField()
     bodyweight = models.DecimalField(max_digits=4, decimal_places=1)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
