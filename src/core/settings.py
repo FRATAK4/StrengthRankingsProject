@@ -26,7 +26,6 @@ INSTALLED_EXTENSIONS = [
     'exercises.apps.ExercisesConfig',
     'accounts.apps.AccountConfig',
     'analytics.apps.AnalyticsConfig',
-    'groups.apps.GroupsConfig',
     'training_plans.apps.TrainingPlansConfig',
     'workout_performance.apps.WorkoutPerformanceConfig',
 ]
