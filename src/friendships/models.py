@@ -11,8 +11,8 @@ class Friendship(models.Model):
     status = models.CharField(max_length=30, choices=FriendshipStatus.choices)
     created_at = models.DateField(default=datetime.now)
     blocked_at = models.DateField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friendships')
-    friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friendships')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wanted_friendships')
+    friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accepted_friendships')
 
     class Meta:
         unique_together = (('user', 'friend'),)
