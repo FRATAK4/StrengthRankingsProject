@@ -8,25 +8,69 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Exercise',
+            name="Exercise",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(choices=[('bench_press', 'Bench Press'), ('deadlift', 'Deadlift'), ('squat', 'Squat')], max_length=50)),
-                ('description', models.CharField(max_length=2000)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        choices=[
+                            ("bench_press", "Bench Press"),
+                            ("deadlift", "Deadlift"),
+                            ("squat", "Squat"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("description", models.CharField(max_length=2000)),
             ],
         ),
         migrations.CreateModel(
-            name='MuscleActivation',
+            name="MuscleActivation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('muscle', models.CharField(choices=[('chest', 'Chest'), ('triceps', 'Triceps'), ('shoulders', 'Shoulders'), ('quadriceps', 'Quadriceps'), ('hamstring', 'Hamstring')], max_length=50)),
-                ('activation_level', models.IntegerField()),
-                ('exercise', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='muscles_activation', to='exercises.exercise')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "muscle",
+                    models.CharField(
+                        choices=[
+                            ("chest", "Chest"),
+                            ("triceps", "Triceps"),
+                            ("shoulders", "Shoulders"),
+                            ("quadriceps", "Quadriceps"),
+                            ("hamstring", "Hamstring"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("activation_level", models.IntegerField()),
+                (
+                    "exercise",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="muscles_activation",
+                        to="exercises.exercise",
+                    ),
+                ),
             ],
         ),
     ]

@@ -10,20 +10,40 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('training_plans', '0001_initial'),
+        ("training_plans", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExerciseSetPerformance',
+            name="ExerciseSetPerformance",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('weight', models.DecimalField(decimal_places=1, max_digits=4)),
-                ('repetitions_done', models.IntegerField()),
-                ('estimated_max', models.DecimalField(decimal_places=1, max_digits=4)),
-                ('bodyweight', models.DecimalField(decimal_places=1, max_digits=4)),
-                ('date', models.DateTimeField(default=datetime.datetime(2025, 5, 31, 0, 38, 34, 350724))),
-                ('exercise_set', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='performances', to='training_plans.exerciseset')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("weight", models.DecimalField(decimal_places=1, max_digits=4)),
+                ("repetitions_done", models.IntegerField()),
+                ("estimated_max", models.DecimalField(decimal_places=1, max_digits=4)),
+                ("bodyweight", models.DecimalField(decimal_places=1, max_digits=4)),
+                (
+                    "date",
+                    models.DateTimeField(
+                        default=datetime.datetime(2025, 5, 31, 0, 38, 34, 350724)
+                    ),
+                ),
+                (
+                    "exercise_set",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="performances",
+                        to="training_plans.exerciseset",
+                    ),
+                ),
             ],
         ),
     ]

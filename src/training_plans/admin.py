@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import TrainingPlan, Workout, ExerciseSet, TrainingPlanUsage, TrainingPlanRating
+from .models import (
+    TrainingPlan,
+    Workout,
+    ExerciseSet,
+    TrainingPlanUsage,
+    TrainingPlanRating,
+)
 
 admin.site.register(TrainingPlan)
 admin.site.register(Workout)

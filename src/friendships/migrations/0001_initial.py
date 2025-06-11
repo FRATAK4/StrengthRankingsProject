@@ -16,32 +16,92 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='FriendRequest',
+            name="FriendRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('message', models.CharField(max_length=50)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')], max_length=30)),
-                ('sent_at', models.DateField(default=datetime.datetime.now)),
-                ('responded_at', models.DateField()),
-                ('receiver', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_friend_requests', to=settings.AUTH_USER_MODEL)),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_friend_requests', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("message", models.CharField(max_length=50)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("accepted", "Accepted"),
+                            ("declined", "Declined"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("sent_at", models.DateField(default=datetime.datetime.now)),
+                ("responded_at", models.DateField()),
+                (
+                    "receiver",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="received_friend_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "sender",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sent_friend_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('sender', 'receiver')},
+                "unique_together": {("sender", "receiver")},
             },
         ),
         migrations.CreateModel(
-            name='Friendship',
+            name="Friendship",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('accepted', 'Active'), ('blocked', 'Blocked')], max_length=30)),
-                ('created_at', models.DateField(default=datetime.datetime.now)),
-                ('blocked_at', models.DateField()),
-                ('friend', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='accepted_friendships', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wanted_friendships', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("accepted", "Active"), ("blocked", "Blocked")],
+                        max_length=30,
+                    ),
+                ),
+                ("created_at", models.DateField(default=datetime.datetime.now)),
+                ("blocked_at", models.DateField()),
+                (
+                    "friend",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="accepted_friendships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="wanted_friendships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'friend')},
+                "unique_together": {("user", "friend")},
             },
         ),
     ]

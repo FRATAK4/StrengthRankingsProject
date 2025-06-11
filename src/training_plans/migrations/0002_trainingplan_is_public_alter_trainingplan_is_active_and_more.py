@@ -9,47 +9,91 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('training_plans', '0001_initial'),
+        ("training_plans", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='trainingplan',
-            name='is_public',
+            model_name="trainingplan",
+            name="is_public",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='trainingplan',
-            name='is_active',
+            model_name="trainingplan",
+            name="is_active",
             field=models.BooleanField(default=False),
         ),
         migrations.CreateModel(
-            name='TrainingPlanRating',
+            name="TrainingPlanRating",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rating', models.IntegerField()),
-                ('comment', models.CharField(max_length=2000)),
-                ('created_at', models.DateField(default=datetime.datetime.now)),
-                ('updated_at', models.DateField()),
-                ('training_plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_ratings', to='training_plans.trainingplan')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='training_plan_ratings', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("rating", models.IntegerField()),
+                ("comment", models.CharField(max_length=2000)),
+                ("created_at", models.DateField(default=datetime.datetime.now)),
+                ("updated_at", models.DateField()),
+                (
+                    "training_plan",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_ratings",
+                        to="training_plans.trainingplan",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="training_plan_ratings",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('training_plan', 'user')},
+                "unique_together": {("training_plan", "user")},
             },
         ),
         migrations.CreateModel(
-            name='TrainingPlanUsage',
+            name="TrainingPlanUsage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_active', models.BooleanField(default=False)),
-                ('get_at', models.DateField(default=datetime.datetime.now)),
-                ('training_plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_usages', to='training_plans.trainingplan')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='training_usages', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=False)),
+                ("get_at", models.DateField(default=datetime.datetime.now)),
+                (
+                    "training_plan",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_usages",
+                        to="training_plans.trainingplan",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="training_usages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('training_plan', 'user')},
+                "unique_together": {("training_plan", "user")},
             },
         ),
     ]

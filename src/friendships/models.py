@@ -3,32 +3,42 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Friendship(models.Model):
     class FriendshipStatus(models.TextChoices):
-        ACTIVE = 'accepted'
-        BLOCKED = 'blocked'
+        ACTIVE = "accepted"
+        BLOCKED = "blocked"
 
     status = models.CharField(max_length=30, choices=FriendshipStatus.choices)
     created_at = models.DateField(default=datetime.now)
     blocked_at = models.DateField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wanted_friendships')
-    friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accepted_friendships')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="wanted_friendships"
+    )
+    friend = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="accepted_friendships"
+    )
 
     class Meta:
-        unique_together = (('user', 'friend'),)
+        unique_together = (("user", "friend"),)
+
 
 class FriendRequest(models.Model):
     class RequestStatus(models.TextChoices):
-        PENDING = 'pending'
-        ACCEPTED = 'accepted'
-        DECLINED = 'declined'
+        PENDING = "pending"
+        ACCEPTED = "accepted"
+        DECLINED = "declined"
 
     message = models.CharField(max_length=50)
     status = models.CharField(max_length=30, choices=RequestStatus.choices)
     sent_at = models.DateField(default=datetime.now)
     responded_at = models.DateField()
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_friend_requests')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_friend_requests')
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="sent_friend_requests"
+    )
+    receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="received_friend_requests"
+    )
 
     class Meta:
-        unique_together = (('sender', 'receiver'),)
+        unique_together = (("sender", "receiver"),)

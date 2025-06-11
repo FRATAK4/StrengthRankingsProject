@@ -16,43 +16,127 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Group',
+            name="Group",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50)),
-                ('description', models.CharField(max_length=2000)),
-                ('image', models.ImageField(default='group_pics/default.jpg', upload_to='group_pics')),
-                ('admin_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='groups_hosted', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50)),
+                ("description", models.CharField(max_length=2000)),
+                (
+                    "image",
+                    models.ImageField(
+                        default="group_pics/default.jpg", upload_to="group_pics"
+                    ),
+                ),
+                (
+                    "admin_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="groups_hosted",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='GroupAddRequest',
+            name="GroupAddRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('message', models.CharField(max_length=50)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('declined', 'Declined')], max_length=30)),
-                ('sent_at', models.DateField(default=datetime.datetime.now)),
-                ('responded_at', models.DateField()),
-                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_add_requests', to='groups.group')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_add_requests', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("message", models.CharField(max_length=50)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("accepted", "Accepted"),
+                            ("declined", "Declined"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("sent_at", models.DateField(default=datetime.datetime.now)),
+                ("responded_at", models.DateField()),
+                (
+                    "group",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_add_requests",
+                        to="groups.group",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="group_add_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'group')},
+                "unique_together": {("user", "group")},
             },
         ),
         migrations.CreateModel(
-            name='GroupMembership',
+            name="GroupMembership",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('accepted', 'Accepted'), ('kicked', 'Kicked'), ('blocked', 'Blocked')], max_length=30)),
-                ('started_at', models.DateField(default=datetime.datetime.now)),
-                ('kicked_at', models.DateField()),
-                ('blocked_at', models.DateField()),
-                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_memberships', to='groups.group')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_memberships', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("accepted", "Accepted"),
+                            ("kicked", "Kicked"),
+                            ("blocked", "Blocked"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("started_at", models.DateField(default=datetime.datetime.now)),
+                ("kicked_at", models.DateField()),
+                ("blocked_at", models.DateField()),
+                (
+                    "group",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_memberships",
+                        to="groups.group",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="group_memberships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'group')},
+                "unique_together": {("user", "group")},
             },
         ),
     ]
