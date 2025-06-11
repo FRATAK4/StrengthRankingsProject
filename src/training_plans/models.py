@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -8,6 +10,7 @@ class TrainingPlan(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
     is_active = models.BooleanField()
+    is_public = models.BooleanField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_plans')
 
 class Workout(models.Model):
@@ -30,3 +33,23 @@ class ExerciseSet(models.Model):
     repetitions = models.IntegerField()
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name='exercise_sets_using')
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='exercise_sets')
+
+class TrainingPlanUsage(models.Model):
+    is_active = models.BooleanField()
+    get_at = models.DateField(default=datetime.now)
+    training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE, related_name='user_usages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_usages')
+
+    class Meta:
+        unique_together = (('training_plan', 'user'),)
+
+class TrainingPlanRating(models.Model):
+    rating = models.IntegerField()
+    comment = models.CharField(max_length=2000)
+    created_at = models.DateField(default=datetime.now)
+    updated_at = models.DateField()
+    training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE, related_name='user_ratings')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_plan_ratings')
+
+    class Meta:
+        unique_together = (('training_plan', 'user'),)
