@@ -9,8 +9,8 @@ from exercises.models import Exercise
 class TrainingPlan(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=2000)
-    is_active = models.BooleanField()
-    is_public = models.BooleanField()
+    is_active = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_plans')
 
 class Workout(models.Model):
@@ -35,7 +35,7 @@ class ExerciseSet(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='exercise_sets')
 
 class TrainingPlanUsage(models.Model):
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(default=False)
     get_at = models.DateField(default=datetime.now)
     training_plan = models.ForeignKey(TrainingPlan, on_delete=models.CASCADE, related_name='user_usages')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='training_usages')
