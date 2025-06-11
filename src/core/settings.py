@@ -27,6 +27,7 @@ INSTALLED_EXTENSIONS = [
     'accounts.apps.AccountConfig',
     'analytics.apps.AnalyticsConfig',
     'groups.apps.GroupsConfig',
+    'friendships.apps.FriendshipsConfig',
     'training_plans.apps.TrainingPlansConfig',
     'workout_performance.apps.WorkoutPerformanceConfig',
 ]
