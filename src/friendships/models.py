@@ -19,7 +19,7 @@ class Friendship(models.Model):
         User, on_delete=models.CASCADE, related_name="accepted_friendships"
     )
     blocked_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="blocked_friendships"
+        User, on_delete=models.CASCADE, related_name="blocked_friendships", null=True
     )
 
     class Meta:
