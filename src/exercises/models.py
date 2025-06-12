@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 
@@ -8,7 +9,7 @@ class Exercise(models.Model):
         SQUAT = "squat"
 
     name = models.CharField(max_length=50, choices=Exercises.choices)
-    description = models.CharField(max_length=2000)
+    description = models.TextField()
 
 
 class MuscleActivation(models.Model):
@@ -20,7 +21,9 @@ class MuscleActivation(models.Model):
         HAMSTRING = "hamstring"
 
     muscle = models.CharField(max_length=50, choices=Muscles.choices)
-    activation_level = models.IntegerField()
+    activation_level = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
     exercise = models.ForeignKey(
         Exercise, on_delete=models.CASCADE, related_name="muscles_activation"
     )

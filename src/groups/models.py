@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class Group(models.Model):
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=2000)
+    description = models.TextField()
     image = models.ImageField(default="group_pics/default.jpg", upload_to="group_pics")
     admin_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="groups_hosted"
@@ -19,10 +19,10 @@ class GroupAddRequest(models.Model):
         ACCEPTED = "accepted"
         DECLINED = "declined"
 
-    message = models.CharField(max_length=50)
+    message = models.TextField()
     status = models.CharField(max_length=30, choices=RequestStatus.choices)
-    sent_at = models.DateField(default=datetime.now)
-    responded_at = models.DateField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="group_add_requests"
     )
@@ -41,9 +41,9 @@ class GroupMembership(models.Model):
         BLOCKED = "blocked"
 
     status = models.CharField(max_length=30, choices=MembershipStatus.choices)
-    started_at = models.DateField(default=datetime.now)
-    kicked_at = models.DateField()
-    blocked_at = models.DateField()
+    started_at = models.DateTimeField(auto_now_add=True)
+    kicked_at = models.DateTimeField()
+    blocked_at = models.DateTimeField()
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="group_memberships"
     )

@@ -10,13 +10,16 @@ class Friendship(models.Model):
         BLOCKED = "blocked"
 
     status = models.CharField(max_length=30, choices=FriendshipStatus.choices)
-    created_at = models.DateField(default=datetime.now)
-    blocked_at = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    blocked_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="wanted_friendships"
+        User, on_delete=models.CASCADE, related_name="sent_friendships"
     )
     friend = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="accepted_friendships"
+    )
+    blocked_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="blocked_friendships"
     )
 
     class Meta:
@@ -29,10 +32,10 @@ class FriendRequest(models.Model):
         ACCEPTED = "accepted"
         DECLINED = "declined"
 
-    message = models.CharField(max_length=50)
+    message = models.TextField()
     status = models.CharField(max_length=30, choices=RequestStatus.choices)
-    sent_at = models.DateField(default=datetime.now)
-    responded_at = models.DateField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(auto_now=True)
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_friend_requests"
     )
