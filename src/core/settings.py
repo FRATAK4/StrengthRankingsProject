@@ -23,6 +23,7 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_EXTENSIONS = [
+    "common.apps.CommonConfig",
     "exercises.apps.ExercisesConfig",
     "accounts.apps.AccountsConfig",
     "analytics.apps.AnalyticsConfig",
@@ -50,7 +51,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "common" / "templates" / "common"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,9 +97,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "common" / "static"]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "common/media")
 MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

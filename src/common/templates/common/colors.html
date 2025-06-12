@@ -181,7 +181,7 @@
               <use xlink:href="vendors/@coreui/icons/svg/free.svg#cil-star"></use>
             </svg> Pages</a>
           <ul class="nav-group-items compact">
-            <li class="nav-item"><a class="nav-link" href="login.html" target="_top">
+            <li class="nav-item"><a class="nav-link" href="../../../accounts/templates/accounts/login.html" target="_top">
                 <svg class="nav-icon">
                   <use xlink:href="vendors/@coreui/icons/svg/free.svg#cil-account-logout"></use>
                 </svg> Login</a></li>
@@ -322,7 +322,11 @@
         <div class="container-fluid px-4">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb my-0">
-              <li class="breadcrumb-item active"><span>Home</span>
+              <li class="breadcrumb-item"><a href="#">Home</a>
+              </li>
+              <li class="breadcrumb-item"><span>Theme</span>
+              </li>
+              <li class="breadcrumb-item active"><span>Colors</span>
               </li>
             </ol>
           </nav>
@@ -330,6 +334,45 @@
       </header>
       <div class="body flex-grow-1">
         <div class="container-lg px-4">
+          <div class="card mb-4">
+            <div class="card-header"> Theme colors</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-primary theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Primary Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-secondary theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Secondary Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-success theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Success Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-danger theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Danger Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-warning theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Warning Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-info theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Info Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-light theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Light Color</h6>
+                </div>
+                <div class="col-xl-2 col-md-3 col-sm-4 col-6 mb-4">
+                  <div class="bg-dark theme-color w-75 rounded mb-2" style="padding-top:75%"></div>
+                  <h6>Brand Dark Color</h6>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <footer class="footer px-4">
@@ -349,6 +392,9 @@
         }
       });
     </script>
+    <!-- Plugins and scripts required by this view-->
+    <script src="vendors/@coreui/utils/js/index.js"></script>
+    <script src="js/colors.js"></script>
     <script>
     </script>
 
