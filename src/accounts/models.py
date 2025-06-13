@@ -7,7 +7,6 @@ class Profile(models.Model):
         MALE = "male"
         FEMALE = "female"
 
-    nick = models.CharField(max_length=50)
     image = models.ImageField(
         default="profile_pics/default.jpg", upload_to="profile_pics"
     )
