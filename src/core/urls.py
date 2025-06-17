@@ -26,4 +26,5 @@ urlpatterns = [
     path("exercises/", include("exercises.urls")),
     path("friendships/", include("friendships.urls")),
     path("groups/", include("groups.urls")),
+    path("notifications/", include("notifications.urls")),
 ]
