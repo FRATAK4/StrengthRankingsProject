@@ -1,12 +1,18 @@
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView
 
+from .forms import GroupCreateForm
 from .models import Group, GroupMembership, GroupAddRequest
 
 
 class GroupDetailView(DetailView):
     model = Group
     template_name = "groups/group.html"
+
+
+class GroupCreateView(CreateView):
+    form_class = GroupCreateForm
+    template_name = "groups/group_create.html"
 
 
 class GroupRankingDetailView(DetailView):
