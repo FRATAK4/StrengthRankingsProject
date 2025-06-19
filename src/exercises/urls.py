@@ -1,6 +1,6 @@
 from django.urls import path
 
-from src.exercises.views import ExerciseListView, ExerciseDetailView
+from .views import ExerciseListView, ExerciseDetailView
 
 urlpatterns = [
     path("", ExerciseListView.as_view(), name="exercises-list"),

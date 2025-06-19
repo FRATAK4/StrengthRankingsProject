@@ -1,6 +1,6 @@
 from django.urls import path
 
-from src.training_plans.views import (
+from .views import (
     UserTrainingPlanListView,
     TrainingPlanListView,
     TrainingPlanDetailView,
