@@ -1,7 +1,13 @@
 import os.path
 from pathlib import Path
 
-from django.conf.global_settings import MEDIA_ROOT, MEDIA_URL, STATICFILES_DIRS
+from django.conf.global_settings import (
+    MEDIA_ROOT,
+    MEDIA_URL,
+    STATICFILES_DIRS,
+    STATIC_ROOT,
+    LOGOUT_REDIRECT_URL,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -99,7 +105,12 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "common" / "static"]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "common/media")
-MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "common" / "media"
+MEDIA_URL = "/common/media/"
+
+LOGIN_REDIRECT_URL = "accounts-profile"
+LOGIN_URL = "login"
+
+LOGOUT_REDIRECT_URL = "common-home"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

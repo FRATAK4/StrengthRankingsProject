@@ -8,7 +8,7 @@ class Profile(models.Model):
         FEMALE = "female"
 
     image = models.ImageField(
-        default="profile_pics/default.jpg", upload_to="profile_pics"
+        default="profile_pics/default.jpg", upload_to="profile_pics/"
     )
     gender = models.CharField(max_length=30, choices=Genders.choices)
     age = models.IntegerField()

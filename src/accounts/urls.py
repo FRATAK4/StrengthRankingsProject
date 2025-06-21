@@ -1,7 +1,7 @@
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
 
-from .views import UserCreateView, UserProfileView
+from .views import UserAndProfileFormView, LoggedUserProfileView, UserProfileView
 
 urlpatterns = [
     path(
@@ -9,6 +9,12 @@ urlpatterns = [
         LoginView.as_view(template_name="accounts/login.html"),
         name="accounts-login",
     ),
-    path("register/", UserCreateView.as_view(), name="accounts-register"),
-    path("profile/", UserProfileView.as_view(), name="accounts-profile"),
+    path("logout/", LogoutView.as_view(), name="accounts-logout"),
+    path("register/", UserAndProfileFormView.as_view(), name="accounts-register"),
+    path("profile/", LoggedUserProfileView.as_view(), name="accounts-profile"),
+    path(
+        "profile/<slug:username>/",
+        UserProfileView.as_view(),
+        name="accounts-user_profile",
+    ),
 ]

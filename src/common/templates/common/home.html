@@ -1,10 +1,15 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}
-    Home
-{% endblock %}
+{% block title %}StrengthRankings{% endblock %}
 
 {% block content %}
-
+<div class="d-flex flex-column justify-content-center align-items-center text-center my-5">
+  <h1 class="display-4 mb-3">Welcome to StrengthRankings</h1>
+  <p class="lead mb-4">Create your training plans, track your progress, and compare it to other users!
+    <br>Join today and start train more effectively!</p>
+  <div>
+    <a href="{% url 'accounts-login' %}" class="btn btn-primary btn-lg mx-2">Log in</a>
+    <a href="{% url 'accounts-register' %}" class="btn btn-outline-secondary btn-lg mx-2">Register</a>
+  </div>
+</div>
 {% endblock %}
