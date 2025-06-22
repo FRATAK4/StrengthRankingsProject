@@ -108,8 +108,8 @@ STATICFILES_DIRS = [BASE_DIR / "common" / "static"]
 MEDIA_ROOT = BASE_DIR / "common" / "media"
 MEDIA_URL = "/common/media/"
 
-LOGIN_REDIRECT_URL = "accounts-profile"
-LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "common-home"
+LOGIN_URL = "accounts-login"
 
 LOGOUT_REDIRECT_URL = "common-home"
 

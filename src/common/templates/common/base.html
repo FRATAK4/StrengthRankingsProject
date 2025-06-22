@@ -1,16 +1,18 @@
 <!doctype html>
+{% load static %}
 <html lang="pl">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/style.min.css">
-    <link rel="stylesheet" href="/static/css/vendors/simplebar.css">
+    <link rel="stylesheet" href="{% static 'vendors/@coreui/coreui/css/coreui.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendors/simplebar.css' %}">
     {% block extra_css %}{% endblock %}
   </head>
   <body>
     {% block header %}
-    <!-- Możesz umieścić tu navbar -->
+    <!-- navbar -->
     {% endblock %}
 
     <main class="container my-4">
@@ -18,11 +20,11 @@
     </main>
 
     {% block footer %}
-    <!-- Możesz umieścić tu stopkę -->
+    <!-- footer -->
     {% endblock %}
 
-    <script src="/static/vendors/@coreui/coreui/js/coreui.bundle.min.js"></script>
-    <script src="/static/js/main.js"></script>
+    <script src="{% static 'vendors/@coreui/coreui/js/coreui.bundle.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>

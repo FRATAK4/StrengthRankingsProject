@@ -2,14 +2,98 @@
 
 {% block title %}StrengthRankings{% endblock %}
 
-{% block content %}
-<div class="d-flex flex-column justify-content-center align-items-center text-center my-5">
-  <h1 class="display-4 mb-3">Welcome to StrengthRankings</h1>
-  <p class="lead mb-4">Create your training plans, track your progress, and compare it to other users!
-    <br>Join today and start train more effectively!</p>
-  <div>
-    <a href="{% url 'accounts-login' %}" class="btn btn-primary btn-lg mx-2">Log in</a>
-    <a href="{% url 'accounts-register' %}" class="btn btn-outline-secondary btn-lg mx-2">Register</a>
+{% block header %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="">Plans</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="communityDropdown" role="button" data-coreui-toggle="dropdown">Community</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="">Friends</a></li>
+            <li><a class="dropdown-item" href="">Groups</a></li>
+            <li><a class="dropdown-item" href="">Rankings</a></li>
+          </ul>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+              <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="30" height="30">
+              {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'accounts-profile' %}">My Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'accounts-logout' %}">Log out</a></li>
+            </ul>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
   </div>
-</div>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+  <div class="container my-5">
+    <h2 class="mb-4">Dashboard</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      <div class="col">
+        <a href="" class="card h-100 text-decoration-none text-dark">
+          <div class="card-body text-center">
+            <h5 class="card-title">My Plans</h5>
+            <p class="card-text">View and edit your training routines.</p>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="" class="card h-100 text-decoration-none text-dark">
+          <div class="card-body text-center">
+            <h5 class="card-title">Statistics</h5>
+            <p class="card-text">Track your progress and records.</p>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="" class="card h-100 text-decoration-none text-dark">
+          <div class="card-body text-center">
+            <h5 class="card-title">Friends</h5>
+            <p class="card-text">Manage your friends list.</p>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="" class="card h-100 text-decoration-none text-dark">
+          <div class="card-body text-center">
+            <h5 class="card-title">Groups</h5>
+            <p class="card-text">Join or create groups.</p>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="" class="card h-100 text-decoration-none text-dark">
+          <div class="card-body text-center">
+            <h5 class="card-title">Rankings</h5>
+            <p class="card-text">See leaderboards.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="container my-5 text-center">
+    <h1 class="display-5 mb-3">Welcome to StrengthRankings</h1>
+    <p class="lead mb-4">Create your training plans, track your progress, and see how you rank among friends.</p>
+    <a href="{% url 'accounts-register' %}" class="btn btn-primary btn-lg me-2">Register</a>
+    <a href="{% url 'accounts-login' %}" class="btn btn-outline-secondary btn-lg">Log in</a>
+  </div>
+{% endif %}
 {% endblock %}
