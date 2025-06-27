@@ -9,7 +9,9 @@
     <div class="ms-auto">
       <form method="post" action="{% url 'accounts-logout' %}">
         {% csrf_token %}
-        <button type="submit">Log out</button>
+        <button type="submit" class="nav-link">
+          Log out
+        </button>
       </form>
     </div>
   </div>
@@ -17,24 +19,64 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
-    <h2 class="mb-4 text-center">{{ user_profile.username }} profile</h2>
-    <div class="card">
-      <div class="card-body">
-        <div class="text-center mb-4">
-          <img src="{{ user_profile.profile.image.url }}" alt="Profile image" class="rounded-circle" width="150" height="150">
+<section class="section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <h2 class="mb-4 text-center text-accent">{{ user_profile.username }} Profile</h2>
+        <div class="card profile-card">
+          <div class="card-body text-center">
+            <img
+              src="{{ user_profile.profile.image.url }}"
+              alt="Profile image"
+              class="rounded-circle mb-4"
+              width="150"
+              height="150"
+            >
+
+            <ul class="list-group list-group-flush text-start">
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>First name:</strong> {{ user_profile.first_name }}
+              </li>
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>Last name:</strong> {{ user_profile.last_name }}
+              </li>
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>Email:</strong> {{ user_profile.email }}
+              </li>
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>Gender:</strong>
+                <span class="badge bg-secondary">{{ user_profile.profile.gender }}</span>
+              </li>
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>Age:</strong> {{ user_profile.profile.age }}
+              </li>
+              <li class="list-group-item bg-transparent text-light border-0 py-2">
+                <strong>Bodyweight:</strong> {{ user_profile.profile.bodyweight }}t
+              </li>
+            </ul>
+
+            <div class="mt-4">
+              <a href="" class="btn btn-outline-accent me-2">
+                Edit Profile
+              </a>
+
+              <form method="post" action="{% url 'accounts-logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="dropdown-item"
+                  style="padding: .375rem 1rem;"
+                >
+                  Log out
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item"><strong>First name:</strong> {{ user_profile.first_name }}</li>
-          <li class="list-group-item"><strong>Last name:</strong> {{ user_profile.last_name }}</li>
-          <li class="list-group-item"><strong>Email:</strong> {{ user_profile.email }}</li>
-          <li class="list-group-item"><strong>Gender:</strong> {{ user_profile.profile.gender }}</li>
-          <li class="list-group-item"><strong>Age:</strong> {{ user_profile.profile.age }}</li>
-          <li class="list-group-item"><strong>Bodyweight:</strong> {{ user_profile.profile.bodyweight }}t</li>
-        </ul>
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
+

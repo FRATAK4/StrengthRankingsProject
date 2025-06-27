@@ -3,90 +3,105 @@
 {% block title %}StrengthRankings{% endblock %}
 
 {% block header %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="">Plans</a></li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="communityDropdown" role="button" data-coreui-toggle="dropdown">Community</a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="">Friends</a></li>
-            <li><a class="dropdown-item" href="">Groups</a></li>
-            <li><a class="dropdown-item" href="">Rankings</a></li>
-          </ul>
-        </li>
-      </ul>
-      <ul class="navbar-nav ms-auto">
-        {% if user.is_authenticated %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
-              <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="30" height="30">
-              {{ user.username }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{% url 'accounts-profile' %}">My Profile</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'accounts-logout' %}">Log out</a></li>
-            </ul>
-          </li>
-        {% endif %}
-      </ul>
+{% if user.is_authenticated %}
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+      <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="30" height="30">
+                {{ user.username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'accounts-profile' %}">My Profile</a></li>
+                <li>
+                  <form method="post" action="{% url 'accounts-logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item">
+                      Log out
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 {% if user.is_authenticated %}
-  <div class="container my-5">
-    <h2 class="mb-4">Dashboard</h2>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-      <div class="col">
-        <a href="" class="card h-100 text-decoration-none text-dark">
-          <div class="card-body text-center">
-            <h5 class="card-title">My Plans</h5>
-            <p class="card-text">View and edit your training routines.</p>
-          </div>
-        </a>
+  <div class="container mt-3 mb-5">
+    <!-- Main Dashboard Section -->
+    <section class="section mb-5">
+      <h3 class="text-accent mb-4">Dashboard</h3>
+      <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">My Plans</h5>
+              <p class="card-text">View and edit your training routines.</p>
+            </div>
+          </a>
+        </div>
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">Statistics</h5>
+              <p class="card-text">Track your progress and records.</p>
+            </div>
+          </a>
+        </div>
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">Friends</h5>
+              <p class="card-text">Manage your friends list.</p>
+            </div>
+          </a>
+        </div>
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">Groups</h5>
+              <p class="card-text">Join or create groups.</p>
+            </div>
+          </a>
+        </div>
       </div>
-      <div class="col">
-        <a href="" class="card h-100 text-decoration-none text-dark">
-          <div class="card-body text-center">
-            <h5 class="card-title">Statistics</h5>
-            <p class="card-text">Track your progress and records.</p>
-          </div>
-        </a>
+    </section>
+
+    <!-- Community Section -->
+    <section class="section">
+      <h3 class="text-accent mb-4">Community</h3>
+      <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">Friends</h5>
+              <p class="card-text">View and manage your friends.</p>
+            </div>
+          </a>
+        </div>
+        <div class="col">
+          <a href="" class="card h-100 text-decoration-none text-dark">
+            <div class="card-body text-center">
+              <h5 class="card-title">Groups</h5>
+              <p class="card-text">Explore and join groups.</p>
+            </div>
+          </a>
+        </div>
       </div>
-      <div class="col">
-        <a href="" class="card h-100 text-decoration-none text-dark">
-          <div class="card-body text-center">
-            <h5 class="card-title">Friends</h5>
-            <p class="card-text">Manage your friends list.</p>
-          </div>
-        </a>
-      </div>
-      <div class="col">
-        <a href="" class="card h-100 text-decoration-none text-dark">
-          <div class="card-body text-center">
-            <h5 class="card-title">Groups</h5>
-            <p class="card-text">Join or create groups.</p>
-          </div>
-        </a>
-      </div>
-      <div class="col">
-        <a href="" class="card h-100 text-decoration-none text-dark">
-          <div class="card-body text-center">
-            <h5 class="card-title">Rankings</h5>
-            <p class="card-text">See leaderboards.</p>
-          </div>
-        </a>
-      </div>
-    </div>
+    </section>
   </div>
 {% else %}
   <div class="container my-5 text-center">
