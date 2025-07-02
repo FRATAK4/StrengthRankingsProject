@@ -1,9 +1,20 @@
-from django.forms import ModelForm
+from django import forms
+from .models import TrainingPlan, Workout, ExerciseSet
 
 
-class TrainingPlanCreateForm(ModelForm):
-    pass
+class TrainingPlanCreateForm(forms.ModelForm):
+    class Meta:
+        model = TrainingPlan
+        fields = ["name", "description", "is_active", "is_public"]
 
 
-class TrainingPlanRatingCreateForm(ModelForm):
-    pass
+class WorkoutCreateForm(forms.ModelForm):
+    class Meta:
+        model = Workout
+        fields = ["name", "description", "day"]
+
+
+class ExerciseSetCreateForm(forms.ModelForm):
+    class Meta:
+        model = ExerciseSet
+        fields = ["set_index", "repetitions", "exercise"]

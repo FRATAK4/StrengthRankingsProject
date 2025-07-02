@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}StrengthRankings{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block header %}
 {% if user.is_authenticated %}
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
       <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
@@ -12,25 +12,24 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
-                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="30" height="30">
-                {{ user.username }}
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'accounts-profile' %}">My Profile</a></li>
-                <li>
-                  <form method="post" action="{% url 'accounts-logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item">
-                      Log out
-                    </button>
-                  </form>
-                </li>
-              </ul>
-            </li>
-          {% endif %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+              <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+              <span class="fw-semibold">{{ user.username }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form method="post" action="{% url 'accounts-logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item text-danger">
+                    <i class="fas fa-sign-out-alt me-2"></i>Log out
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </li>
         </ul>
       </div>
     </div>
@@ -40,63 +39,92 @@
 
 {% block content %}
 {% if user.is_authenticated %}
-  <div class="container mt-3 mb-5">
+  <div class="container">
+    <!-- Welcome Section -->
+    <section class="hero-section mb-5">
+      <h1 class="display-title">Welcome back, {{ user.first_name }}!</h1>
+      <p class="lead">Ready to crush your fitness goals today?</p>
+    </section>
+
     <!-- Main Dashboard Section -->
     <section class="section mb-5">
-      <h3 class="text-accent mb-4">Dashboard</h3>
-      <div class="row row-cols-1 row-cols-md-2 g-4">
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">My Plans</h5>
-              <p class="card-text">View and edit your training routines.</p>
+      <div class="section-header">
+        <h3>Your Dashboard</h3>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <a href="#" class="text-decoration-none">
+            <div class="card dashboard-card">
+              <div class="card-body text-center">
+                <div class="icon">
+                  <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h5 class="card-title">My Plans</h5>
+                <p class="card-text">Create and manage your training routines</p>
+              </div>
             </div>
           </a>
         </div>
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">Statistics</h5>
-              <p class="card-text">Track your progress and records.</p>
+        <div class="col-md-6 col-lg-4">
+          <a href="#" class="text-decoration-none">
+            <div class="card dashboard-card">
+              <div class="card-body text-center">
+                <div class="icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="card-title">Statistics</h5>
+                <p class="card-text">Track progress and personal records</p>
+              </div>
             </div>
           </a>
         </div>
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">Friends</h5>
-              <p class="card-text">Manage your friends list.</p>
-            </div>
-          </a>
-        </div>
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">Groups</h5>
-              <p class="card-text">Join or create groups.</p>
+        <div class="col-md-6 col-lg-4">
+          <a href="#" class="text-decoration-none">
+            <div class="card dashboard-card">
+              <div class="card-body text-center">
+                <div class="icon">
+                  <i class="fas fa-dumbbell"></i>
+                </div>
+                <h5 class="card-title">Workouts</h5>
+                <p class="card-text">Log your training sessions</p>
+              </div>
             </div>
           </a>
         </div>
       </div>
     </section>
 
+    <div class="divider"></div>
+
     <!-- Community Section -->
     <section class="section">
-      <h3 class="text-accent mb-4">Community</h3>
-      <div class="row row-cols-1 row-cols-md-2 g-4">
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">Friends</h5>
-              <p class="card-text">View and manage your friends.</p>
+      <div class="section-header">
+        <h3>Community</h3>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <a href="#" class="text-decoration-none">
+            <div class="card dashboard-card">
+              <div class="card-body text-center">
+                <div class="icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <h5 class="card-title">Friends</h5>
+                <p class="card-text">Connect with training partners</p>
+              </div>
             </div>
           </a>
         </div>
-        <div class="col">
-          <a href="" class="card h-100 text-decoration-none text-dark">
-            <div class="card-body text-center">
-              <h5 class="card-title">Groups</h5>
-              <p class="card-text">Explore and join groups.</p>
+        <div class="col-md-6">
+          <a href="#" class="text-decoration-none">
+            <div class="card dashboard-card">
+              <div class="card-body text-center">
+                <div class="icon">
+                  <i class="fas fa-users-cog"></i>
+                </div>
+                <h5 class="card-title">Groups</h5>
+                <p class="card-text">Join fitness communities</p>
+              </div>
             </div>
           </a>
         </div>
@@ -104,11 +132,54 @@
     </section>
   </div>
 {% else %}
-  <div class="container my-5 text-center">
-    <h1 class="display-5 mb-3">Welcome to StrengthRankings</h1>
-    <p class="lead mb-4">Create your training plans, track your progress, and see how you rank among friends.</p>
-    <a href="{% url 'accounts-register' %}" class="btn btn-primary btn-lg me-2">Register</a>
-    <a href="{% url 'accounts-login' %}" class="btn btn-outline-secondary btn-lg">Log in</a>
+  <div class="container">
+    <section class="hero-section py-5">
+      <h1 class="display-1 fw-bold mb-4">
+        <span class="text-gradient">STRENGTH</span><span style="color: var(--text-primary);">RANKINGS</span>
+      </h1>
+      <p class="lead mb-5">
+        Transform your training journey. Track progress, compete with friends, and achieve your fitness goals.
+      </p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap mb-5">
+        <a href="{% url 'accounts-register' %}" class="btn btn-primary btn-lg">
+          <i class="fas fa-user-plus me-2"></i>Start Your Journey
+        </a>
+        <a href="{% url 'accounts-login' %}" class="btn btn-outline-secondary btn-lg">
+          <i class="fas fa-sign-in-alt me-2"></i>Log In
+        </a>
+      </div>
+
+      <!-- Features Preview -->
+      <div class="row mt-5 pt-5 g-4">
+        <div class="col-md-4 mb-4">
+          <div class="text-center">
+            <div class="icon mb-3">
+              <i class="fas fa-chart-line text-gradient"></i>
+            </div>
+            <h4 style="color: var(--text-primary);">Track Progress</h4>
+            <p class="text-secondary">Monitor your strength gains with detailed analytics</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="text-center">
+            <div class="icon mb-3">
+              <i class="fas fa-trophy text-gradient"></i>
+            </div>
+            <h4 style="color: var(--text-primary);">Compete</h4>
+            <p class="text-secondary">Compare your lifts with friends and climb the rankings</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="text-center">
+            <div class="icon mb-3">
+              <i class="fas fa-users text-gradient"></i>
+            </div>
+            <h4 style="color: var(--text-primary);">Connect</h4>
+            <p class="text-secondary">Join a community of strength enthusiasts</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 {% endif %}
 {% endblock %}
