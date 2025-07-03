@@ -35,8 +35,17 @@ class Workout(models.Model):
     )
 
 
+class WorkoutExercise(models.Model):
+    workout = models.ForeignKey(
+        Workout, on_delete=models.CASCADE, related_name="exercises"
+    )
+    exercise = models.ForeignKey(
+        Exercise, on_delete=models.CASCADE, related_name="workouts"
+    )
+
+
 class ExerciseSet(models.Model):
-    set_index = models.PositiveIntegerField(
+    set_number = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
             MaxValueValidator(50),
@@ -48,11 +57,8 @@ class ExerciseSet(models.Model):
             MaxValueValidator(100),
         ]
     )
-    exercise = models.ForeignKey(
-        Exercise, on_delete=models.CASCADE, related_name="exercise_sets_using"
-    )
-    workout = models.ForeignKey(
-        Workout, on_delete=models.CASCADE, related_name="exercise_sets"
+    workout_exercise = models.ForeignKey(
+        WorkoutExercise, on_delete=models.CASCADE, related_name="exercise_sets"
     )
 
 
