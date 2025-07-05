@@ -1,110 +1,145 @@
-# forms.py
-from django import forms
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms import inlineformset_factory
+from django.views.generic import View, DetailView
+from .forms import TrainingPlanForm, WorkoutForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from .models import TrainingPlan, Workout
-
-
-class TrainingPlanForm(forms.ModelForm):
-    class Meta:
-        model = TrainingPlan
-        fields = ["name", "description", "is_active", "is_public"]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "is_public": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        }
-
-
-class WorkoutForm(forms.ModelForm):
-    class Meta:
-        model = Workout
-        fields = ["name", "description", "day"]
-        widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-            "day": forms.Select(attrs={"class": "form-control"}),
-        }
-
-
-WorkoutFormSet = inlineformset_factory(
-    TrainingPlan,  # Model rodzica
-    Workout,  # Model dziecka
-    form=WorkoutForm,
-    extra=0,  # Ile pustych formularzy pokazać na początku
-    can_delete=True,  # Czy można usuwać workout
-    min_num=1,  # Minimum jeden workout jest wymagany
-    validate_min=True,
+from django.db import transaction
+from .models import TrainingPlan, Workout, WorkoutExercise, ExerciseSet
+from .forms import (
+    TrainingPlanForm,
+    WorkoutFormSet,
+    WorkoutExerciseFormSet,
+    ExerciseSetFormSet,
 )
 
-# views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import TrainingPlan
 
+class TrainingPlanCreateView(LoginRequiredMixin, View):
+    template_name = "training_plans/training_plan_create.html"
+    form_class = TrainingPlanForm
 
-@login_required
-def create_training_plan(request):
-    if request.method == "POST":
-        training_plan_form = TrainingPlanForm(request.POST)
+    def get_formset_class(self):
+        return inlineformset_factory(
+            TrainingPlan,
+            Workout,
+            form=WorkoutForm,
+            extra=0,
+            can_delete=True,
+            min_num=1,
+            validate_min=True,
+        )
+
+    def get(self, request):
+        training_plan_form = self.form_class()
+        WorkoutFormSet = self.get_formset_class()
+        workout_formset = WorkoutFormSet()
+
+        context = {
+            "training_plan_form": training_plan_form,
+            "workout_formset": workout_formset,
+        }
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        training_plan_form = self.form_class(request.POST)
+        WorkoutFormSet = self.get_formset_class()
 
         if training_plan_form.is_valid():
             training_plan = training_plan_form.save(commit=False)
-            training_plan.user = request.user  # Przypisujemy aktualnego użytkownika
+            training_plan.user = request.user
 
+            workout_formset = WorkoutFormSet(request.POST)
+
+            if workout_formset.is_valid():
+                with transaction.atomic():
+                    training_plan.save()
+                    workout_formset.instance = training_plan
+                    workout_formset.save()
+
+                messages.success(request, message="Successfully created training plan!")
+                return redirect("training_plan_detail", pk=training_plan.pk)
+            else:
+                messages.error(request, message="Workout form is not valid!")
+        else:
+            workout_formset = WorkoutFormSet(request.POST)
+            messages.error(request, message="Training plan form is not valid!")
+
+        context = {
+            "training_plan_form": training_plan_form,
+            "workout_formset": workout_formset,
+        }
+
+        return render(request, template_name=self.template_name, context=context)
+
+
+class TrainingPlanUpdateView(LoginRequiredMixin, View):
+    template_name = "training_plans/training_plan_create.html"
+    form_class = TrainingPlanForm
+
+    def get_formset_class(self):
+        return inlineformset_factory(
+            TrainingPlan,
+            Workout,
+            form=WorkoutForm,
+            extra=0,
+            can_delete=True,
+            min_num=1,
+            validate_min=True,
+        )
+
+    def get_object(self):
+        return get_object_or_404(TrainingPlan, pk=self.kwargs.get("pk"))
+
+    def get(self, request):
+        training_plan = self.get_object()
+        WorkoutFormSet = self.get_formset_class()
+
+        training_plan_form = self.form_class(instance=training_plan)
+        workout_formset = WorkoutFormSet(instance=training_plan)
+
+        context = {
+            "training_plan_form": training_plan_form,
+            "workout_formset": workout_formset,
+            "training_plan": training_plan,
+        }
+
+        return render(request, template_name=self.template_name, context=context)
+
+    def post(self, request):
+        training_plan = self.get_object()
+        WorkoutFormSet = self.get_formset_class()
+
+        training_plan_form = self.form_class(request.POST, instance=training_plan)
+
+        if training_plan_form.is_valid():
             workout_formset = WorkoutFormSet(request.POST, instance=training_plan)
 
             if workout_formset.is_valid():
-                training_plan.save()
-                workout_formset.save()
+                with transaction.atomic():
+                    training_plan.save()
+                    workout_formset.save()
 
-                messages.success(request, "Plan treningowy został utworzony!")
-                return redirect("training_plan_detail")
+                messages.success(request, message="Successfully created training plan!")
+                return redirect("training_plan_detail", pk=training_plan.pk)
             else:
-                # Jeśli formset ma błędy, pokażemy je w template
-                messages.error(request, "Sprawdź błędy w formularzach workout.")
+                messages.error(request, message="Workout form is not valid!")
         else:
-            # Jeśli główny formularz ma błędy
-            workout_formset = WorkoutFormSet(request.POST)
-            messages.error(request, "Sprawdź błędy w formularzu planu treningowego.")
-    else:
-        # GET request - pokazujemy puste formularze
-        training_plan_form = TrainingPlanForm()
-        workout_formset = WorkoutFormSet()
+            workout_formset = self.get_formset_class()(
+                request.POST, instance=training_plan
+            )
+            messages.error(request, message="Training plan form is not valid!")
 
-    context = {
-        "training_plan_form": training_plan_form,
-        "workout_formset": workout_formset,
-    }
-    return render(request, "training_plans/training_plan_create.html", context)
+        context = {
+            "training_plan_form": training_plan_form,
+            "workout_formset": workout_formset,
+        }
+
+        return render(request, template_name=self.template_name, context=context)
 
 
-def detail_plan(request):
-    return render(request, "training_plans/training_plans_list.html")
-
-
-@login_required
-def edit_training_plan(request, pk):
-    training_plan = get_object_or_404(TrainingPlan, pk=pk, user=request.user)
-
-    if request.method == "POST":
-        training_plan_form = TrainingPlanForm(request.POST, instance=training_plan)
-        workout_formset = WorkoutFormSet(request.POST, instance=training_plan)
-
-        if training_plan_form.is_valid() and workout_formset.is_valid():
-            training_plan_form.save()
-            workout_formset.save()
-            messages.success(request, "Plan treningowy został zaktualizowany!")
-            return redirect("training_plan_detail")
-    else:
-        training_plan_form = TrainingPlanForm(instance=training_plan)
-        workout_formset = WorkoutFormSet(instance=training_plan)
-
-    context = {
-        "training_plan_form": training_plan_form,
-        "workout_formset": workout_formset,
-        "training_plan": training_plan,
-        "is_edit": True,
-    }
-    return render(request, "training_plans/training_plan_create.html", context)
+class TrainingPlanDetailView(DetailView):
+    model = TrainingPlan
+    template_name = "training_plans/training_plan.html"
+    context_object_name = "training_plan"
