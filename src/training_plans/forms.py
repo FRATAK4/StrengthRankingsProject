@@ -22,7 +22,7 @@ class ExerciseSetForm(ModelForm):
         model = ExerciseSet
         fields = ["repetitions"]
 
-WorkoutFormSet = inlineformset_factory(
+WorkoutExerciseFormSet = inlineformset_factory(
     parent_model=Workout,
     model=WorkoutExercise,
     form=WorkoutExerciseForm,
@@ -34,7 +34,7 @@ WorkoutFormSet = inlineformset_factory(
     validate_max=True,
 )
 
-WorkoutExerciseFormSet = inlineformset_factory(
+ExerciseSetFormSet = inlineformset_factory(
     parent_model=WorkoutExercise,
     model=ExerciseSet,
     form=ExerciseSetForm,
