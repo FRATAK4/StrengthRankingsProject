@@ -7,20 +7,24 @@ class TrainingPlanForm(ModelForm):
         model = TrainingPlan
         fields = ["name", "description"]
 
+
 class WorkoutForm(ModelForm):
     class Meta:
         model = Workout
         fields = ["name", "description"]
+
 
 class WorkoutExerciseForm(ModelForm):
     class Meta:
         model = WorkoutExercise
         fields = ["exercise"]
 
+
 class ExerciseSetForm(ModelForm):
     class Meta:
         model = ExerciseSet
         fields = ["repetitions"]
+
 
 WorkoutExerciseFormSet = inlineformset_factory(
     parent_model=Workout,
@@ -45,7 +49,3 @@ ExerciseSetFormSet = inlineformset_factory(
     max_num=50,
     validate_max=True,
 )
-
-
-
-
