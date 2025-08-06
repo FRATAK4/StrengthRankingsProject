@@ -1,7 +1,7 @@
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     ListView,
     CreateView,
@@ -20,19 +20,21 @@ from .forms import (
 from .models import TrainingPlan, Workout
 
 
-class TrainingPlanListView(ListView):
+class TrainingPlanListView(LoginRequiredMixin, ListView):
     model = TrainingPlan
     template_name = "training_plans/training_plan_list.html"
     context_object_name = "training_plans"
 
     def get_queryset(self):
-        user = get_object_or_404(User, pk=self.kwargs.get("pk"))
-        return TrainingPlan.objects.filter(user=user)
+        return TrainingPlan.objects.filter(user=self.request.user)
 
 
-class TrainingPlanCreateView(CreateView):
+class TrainingPlanCreateView(LoginRequiredMixin, CreateView):
     form_class = TrainingPlanForm
     template_name = "training_plans/training_plan_create.html"
+
+    def get_success_url(self):
+        return reverse("training_plan_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         messages.success(self.request, "Training plan created successfully!")
@@ -46,7 +48,7 @@ class TrainingPlanCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class TrainingPlanDetailView(DetailView):
+class TrainingPlanDetailView(LoginRequiredMixin, DetailView):
     model = TrainingPlan
     template_name = "training_plans/training_plan_detail.html"
     context_object_name = "training_plan"
@@ -56,9 +58,15 @@ class TrainingPlanDetailView(DetailView):
         return queryset.prefetch_related("workouts")
 
 
-class TrainingPlanUpdateView(UpdateView):
+class TrainingPlanUpdateView(LoginRequiredMixin, UpdateView):
     form_class = TrainingPlanForm
     template_name = "training_plans/training_plan_update.html"
+
+    def get_queryset(self):
+        return TrainingPlan.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse("training_plan_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         messages.success(self.request, "Training plan updated successfully!")
@@ -69,35 +77,83 @@ class TrainingPlanUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
-class TrainingPlanDeleteView(DeleteView):
+class TrainingPlanDeleteView(LoginRequiredMixin, DeleteView):
     model = TrainingPlan
     template_name = "training_plans/training_plan_confirm_delete.html"
-    success_url = reverse_lazy("")
+    success_url = reverse_lazy("training_plan_list")
+
+    def get_queryset(self):
+        return TrainingPlan.objects.filter(user=self.request.user)
 
     def delete(self, request, *args, **kwargs):
         messages.error(request, "Successfully deleted training plan!")
         super().delete(request, *args, **kwargs)
 
 
-class WorkoutCreateView(CreateView):
+class WorkoutCreateView(LoginRequiredMixin, CreateView):
     form_class = WorkoutForm
     template_name = "training_plans/workout_create.html"
+
+    def get_success_url(self):
+        return reverse(
+            "workout_edit",
+            kwargs={
+                "training_plan_pk": self.object.training_plan.pk,
+                "workout_pk": self.object.pk,
+            },
+        )
 
     def form_valid(self, form):
         messages.success(self.request, "Workout created successfully!")
         training_plan_instance = get_object_or_404(
             TrainingPlan, pk=self.kwargs.get("pk")
         )
+        day = self.kwargs.get("day")
         workout = form.save(commit=False)
         workout.training_plan = training_plan_instance
+        workout.day = day
         workout.save()
         return super().form_valid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, "Couldn't create workout")
+        return super().form_invalid(form)
 
 
-class WorkoutFormSetView(View):
+class WorkoutDetailView(LoginRequiredMixin, DetailView):
+    model = Workout
+    template_name = "training_plans/workout_detail.html"
+    context_object_name = "workout"
+    pk_url_kwarg = "workout_pk"
+
+    def get_queryset(self):
+        return Workout.objects.prefetch_related("exercises__exercise_sets")
+
+
+class WorkoutUpdateView(LoginRequiredMixin, UpdateView):
+    form_class = WorkoutForm
+    template_name = "training_plans/workout_update.html"
+    pk_url_kwarg = "workout_pk"
+
+    def get_success_url(self):
+        return reverse(
+            "workout_edit",
+            kwargs={
+                "training_plan_pk": self.object.training_plan.pk,
+                "workout_pk": self.object.pk,
+            },
+        )
+
+    def form_valid(self, form):
+        messages.success(self.request, "Workout updated successfully!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Couldn't update workout")
+        return super().form_invalid(form)
+
+
+class WorkoutFormSetView(LoginRequiredMixin, View):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.training_plan = get_object_or_404(
@@ -152,7 +208,11 @@ class WorkoutFormSetView(View):
             if all_valid:
                 for exercise_set_formset in exercise_set_formsets:
                     exercise_set_formset.save()
-                return redirect("my-url")
+                return redirect(
+                    "workout_detail",
+                    training_plan_pk=self.training_plan.pk,
+                    workout_pk=self.workout.pk,
+                )
         else:
             for i, form in enumerate(workout_exercise_formset.forms):
                 formset = ExerciseSetFormSet(
@@ -172,25 +232,3 @@ class WorkoutFormSetView(View):
         return render(
             self.request, "training_plans/workout_exercises_form.html", context
         )
-
-
-class WorkoutDetailView(DetailView):
-    model = Workout
-    template_name = "training_plans/workout_detail.html"
-    context_object_name = "workout"
-
-    def get_queryset(self):
-        return Workout.objects.prefetch_related("exercises__exercise_sets")
-
-
-class WorkoutUpdateView(UpdateView):
-    form_class = WorkoutForm
-    template_name = "training_plans/workout_update.html"
-
-    def form_valid(self, form):
-        messages.success(self.request, "Workout updated successfully!")
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, "Couldn't update workout")
-        return super().form_invalid(form)
