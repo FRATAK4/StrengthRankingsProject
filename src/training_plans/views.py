@@ -85,7 +85,9 @@ class WorkoutCreateView(CreateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Workout created successfully!")
-        training_plan_instance = TrainingPlan.objects.filter(pk=self.kwargs.get("pk"))
+        training_plan_instance = get_object_or_404(
+            TrainingPlan, pk=self.kwargs.get("pk")
+        )
         workout = form.save(commit=False)
         workout.training_plan = training_plan_instance
         workout.save()
