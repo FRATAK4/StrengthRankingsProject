@@ -22,6 +22,14 @@ class WorkoutCreateView(LoginRequiredMixin, CreateView):
     form_class = WorkoutForm
     template_name = "training_plans/workouts/workout_create.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["training_plan"] = get_object_or_404(
+            TrainingPlan, pk=self.kwargs.get("pk")
+        )
+        context["day"] = self.request.GET.get("day")
+        return context
+
     def get_success_url(self):
         return reverse(
             "workout_edit",
@@ -33,10 +41,9 @@ class WorkoutCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Workout created successfully!")
-        training_plan_instance = get_object_or_404(
-            TrainingPlan, pk=self.kwargs.get("pk")
-        )
-        day = self.request.GET.get("day")
+        context = self.get_context_data()
+        training_plan_instance = context["training_plan"]
+        day = context["day"]
         workout = form.save(commit=False)
         workout.training_plan = training_plan_instance
         workout.day = day
