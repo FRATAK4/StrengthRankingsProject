@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load dict_filters %}
+
+{% block title %}{{ training_plan.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'training_plan_list' %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Plans
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Plan Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-title mb-3">{{ training_plan.name }}</h1>
+        <p class="lead text-secondary">{{ training_plan.description }}</p>
+
+        <!-- Plan Status Badges -->
+        <div class="d-flex gap-2 flex-wrap mb-3">
+          {% if training_plan.is_active %}
+            <span class="badge bg-success">
+              <i class="fas fa-check-circle me-1"></i>Active Plan
+            </span>
+          {% else %}
+            <span class="badge bg-secondary">
+              <i class="fas fa-pause-circle me-1"></i>Inactive
+            </span>
+          {% endif %}
+
+          {% if training_plan.is_public %}
+            <span class="badge bg-info">
+              <i class="fas fa-globe me-1"></i>Public
+            </span>
+          {% else %}
+            <span class="badge bg-secondary">
+              <i class="fas fa-lock me-1"></i>Private
+            </span>
+          {% endif %}
+
+          <span class="badge bg-secondary">
+            <i class="fas fa-calendar-alt me-1"></i>{{ training_plan.workouts.count }} Workout{{ training_plan.workouts.count|pluralize }}
+          </span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <!-- Action Buttons -->
+        <div class="btn-group" role="group">
+          <a href="{% url 'training_plan_edit' pk=training_plan.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-edit me-2"></i>Edit
+          </a>
+          <a href="{% url 'training_plan_delete' pk=training_plan.pk %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash me-2"></i>Delete
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Weekly Schedule -->
+  <section class="section">
+    <div class="section-header">
+      <h3>Weekly Schedule</h3>
+    </div>
+
+    <!-- Create a simple list of workouts grouped by day -->
+    <div class="row g-4">
+      {% for day_value, day_display in days %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card dashboard-card h-100">
+            <div class="card-body">
+              <!-- Day Header -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">
+                  <i class="fas fa-calendar-day me-2 text-gradient"></i>
+                  {{ day_display }}
+                </h5>
+              </div>
+
+              <!-- Check if workout exists for this day -->
+              {% with workout=workouts_by_day|default:None %}
+                {% if day_value in workouts_by_day %}
+                  {% with workout=workouts_by_day|get_item:day_value %}
+                    <!-- Workout Exists -->
+                    <div class="mb-3">
+                      <h6 class="text-primary mb-2">{{ workout.name }}</h6>
+                      <p class="text-secondary small mb-2">
+                        {{ workout.description|truncatechars:60|default:"No description" }}
+                      </p>
+                      <div class="text-secondary small">
+                        <i class="fas fa-dumbbell me-1"></i>
+                        {{ workout.exercises.count }} exercise{{ workout.exercises.count|pluralize }}
+                      </div>
+                    </div>
+
+                    <!-- Workout Actions -->
+                    <div class="d-grid gap-2">
+                      <a href="{% url 'workout_detail' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
+                         class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-eye me-1"></i>View Workout
+                      </a>
+                      <div class="btn-group" role="group">
+                        <a href="{% url 'workout_edit' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
+                           class="btn btn-sm btn-outline-secondary">
+                          <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'workout_edit_exercises' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
+                           class="btn btn-sm btn-outline-accent">
+                          <i class="fas fa-list"></i> Exercises
+                        </a>
+                      </div>
+                    </div>
+                  {% endwith %}
+                {% else %}
+                  <!-- Empty Day -->
+                  <div class="text-center py-3">
+                    <div class="mb-3">
+                      <i class="fas fa-plus-circle text-muted" style="font-size: 2rem;"></i>
+                    </div>
+                    <p class="text-muted small mb-3">No workout scheduled</p>
+                    <a href="{% url 'workout_create' pk=training_plan.pk day=day_value %}?day=day"
+                       class="btn btn-primary btn-sm">
+                      <i class="fas fa-plus me-1"></i>Add Workout
+                    </a>
+                  </div>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Quick Stats Section -->
+  <div class="divider"></div>
+
+  <section class="section">
+    <div class="section-header">
+      <h3>Plan Statistics</h3>
+    </div>
+
+    <div class="row g-4 text-center">
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-calendar-check text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ training_plan.workouts.count }}</h4>
+        <p class="text-secondary small">Total Workouts</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-dumbbell text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ total_exercises }}</h4>
+        <p class="text-secondary small">Total Exercises</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-users text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ training_plan.user_usages.count }}</h4>
+        <p class="text-secondary small">Users Following</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-star text-gradient"></i>
+        </div>
+        <h4 class="mb-1">
+          {% if avg_rating %}
+            {{ avg_rating|floatformat:1 }}
+          {% else %}
+            N/A
+          {% endif %}
+        </h4>
+        <p class="text-secondary small">Average Rating</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

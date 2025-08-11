@@ -18,6 +18,7 @@ from .forms import (
     ExerciseSetFormSet,
 )
 from .models import TrainingPlan, Workout
+from django.db.models import Avg
 
 
 class TrainingPlanListView(LoginRequiredMixin, ListView):
@@ -55,7 +56,45 @@ class TrainingPlanDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.prefetch_related("workouts")
+        return queryset.prefetch_related("workouts", "workouts__exercises")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Create a dictionary of workouts by day
+        workouts_by_day = {}
+        for workout in self.object.workouts.all():
+            workouts_by_day[workout.day] = workout
+
+        # Days of the week
+        days = [
+            ("monday", "Monday"),
+            ("tuesday", "Tuesday"),
+            ("wednesday", "Wednesday"),
+            ("thursday", "Thursday"),
+            ("friday", "Friday"),
+            ("saturday", "Saturday"),
+            ("sunday", "Sunday"),
+        ]
+
+        # Calculate total exercises
+        total_exercises = sum(
+            workout.exercises.count() for workout in self.object.workouts.all()
+        )
+
+        # Calculate average rating
+        avg_rating = self.object.user_ratings.aggregate(Avg("rating"))["rating__avg"]
+
+        context.update(
+            {
+                "workouts_by_day": workouts_by_day,
+                "days": days,
+                "total_exercises": total_exercises,
+                "avg_rating": avg_rating,
+            }
+        )
+
+        return context
 
 
 class TrainingPlanUpdateView(LoginRequiredMixin, UpdateView):
@@ -86,7 +125,7 @@ class TrainingPlanDeleteView(LoginRequiredMixin, DeleteView):
         return TrainingPlan.objects.filter(user=self.request.user)
 
     def delete(self, request, *args, **kwargs):
-        messages.error(request, "Successfully deleted training plan!")
+        messages.success(request, "Successfully deleted training plan!")
         super().delete(request, *args, **kwargs)
 
 
