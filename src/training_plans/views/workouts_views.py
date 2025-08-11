@@ -71,9 +71,15 @@ class WorkoutUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "training_plans/workouts/workout_update.html"
     pk_url_kwarg = "workout_pk"
 
+    def get_queryset(self):
+        training_plan = get_object_or_404(
+            TrainingPlan, pk=self.kwargs.get("training_plan_pk")
+        )
+        return Workout.objects.filter(training_plan=training_plan)
+
     def get_success_url(self):
         return reverse(
-            "workout_edit",
+            "workout_edit_exercises",
             kwargs={
                 "training_plan_pk": self.object.training_plan.pk,
                 "workout_pk": self.object.pk,
