@@ -1,11 +1,13 @@
 from django.urls import path
 
-from .views import (
+from .views.plans_views import (
     TrainingPlanListView,
     TrainingPlanCreateView,
     TrainingPlanDetailView,
     TrainingPlanUpdateView,
     TrainingPlanDeleteView,
+)
+from .views.workouts_views import (
     WorkoutCreateView,
     WorkoutDetailView,
     WorkoutUpdateView,
