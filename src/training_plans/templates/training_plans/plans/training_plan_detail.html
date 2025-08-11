@@ -139,12 +139,16 @@
                       </a>
                       <div class="btn-group" role="group">
                         <a href="{% url 'workout_edit' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
-                           class="btn btn-sm btn-outline-secondary">
-                          <i class="fas fa-edit"></i> Edit
+                           class="btn btn-sm btn-outline-secondary" title="Edit">
+                          <i class="fas fa-edit"></i>
                         </a>
                         <a href="{% url 'workout_edit_exercises' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
-                           class="btn btn-sm btn-outline-accent">
-                          <i class="fas fa-list"></i> Exercises
+                           class="btn btn-sm btn-outline-accent" title="Manage Exercises">
+                          <i class="fas fa-list"></i>
+                        </a>
+                        <a href="{% url 'workout_delete' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
+                           class="btn btn-sm btn-outline-danger" title="Delete Workout">
+                          <i class="fas fa-trash"></i>
                         </a>
                       </div>
                     </div>

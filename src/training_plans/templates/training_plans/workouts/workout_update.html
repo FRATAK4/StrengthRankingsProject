@@ -186,42 +186,8 @@
             </div>
           </div>
         </div>
-
-        <!-- Delete Option -->
-        <div class="mt-3 text-center">
-          <button type="button" class="btn btn-link text-danger btn-sm" data-coreui-toggle="modal" data-coreui-target="#deleteModal">
-            <i class="fas fa-trash me-1"></i>Delete this workout
-          </button>
-        </div>
       </div>
     </div>
   </section>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content" style="background: var(--surface); border: 1px solid rgba(255,255,255,0.1);">
-      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <h5 class="modal-title text-danger">
-          <i class="fas fa-exclamation-triangle me-2"></i>Delete Workout?
-        </h5>
-        <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
-        <p class="text-secondary small mb-0">This will remove the workout and all its exercises from {{ object.day|title }}.</p>
-      </div>
-      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
-        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
-        <form method="post" action="#" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash me-1"></i>Delete Workout
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
 </div>
 {% endblock %}
