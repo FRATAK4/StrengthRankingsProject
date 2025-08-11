@@ -36,7 +36,7 @@ class WorkoutCreateView(LoginRequiredMixin, CreateView):
         training_plan_instance = get_object_or_404(
             TrainingPlan, pk=self.kwargs.get("pk")
         )
-        day = self.kwargs.get("day")
+        day = self.request.GET.get("day")
         workout = form.save(commit=False)
         workout.training_plan = training_plan_instance
         workout.day = day

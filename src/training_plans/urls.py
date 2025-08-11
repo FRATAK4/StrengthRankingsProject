@@ -24,9 +24,7 @@ urlpatterns = [
         TrainingPlanDeleteView.as_view(),
         name="training_plan_delete",
     ),
-    path(
-        "<int:pk>/<str:day>/create/", WorkoutCreateView.as_view(), name="workout_create"
-    ),
+    path("<int:pk>/create/", WorkoutCreateView.as_view(), name="workout_create"),
     path(
         "<int:training_plan_pk>/<int:workout_pk>/",
         WorkoutDetailView.as_view(),
