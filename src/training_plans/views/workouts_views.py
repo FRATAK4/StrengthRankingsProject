@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
     DetailView,
     UpdateView,
     View,
+    DeleteView,
 )
 
 from training_plans.forms import (
@@ -86,6 +87,21 @@ class WorkoutUpdateView(LoginRequiredMixin, UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, "Couldn't update workout")
         return super().form_invalid(form)
+
+
+class WorkoutDeleteView(LoginRequiredMixin, DeleteView):
+    model = Workout
+    template_name = "training_plans/workouts/workout_confirm_delete.html"
+    pk_url_kwarg = "workout_pk"
+
+    def get_success_url(self):
+        return reverse(
+            "training_plan_detail", kwargs={"pk": self.kwargs.get("training_plan_pk")}
+        )
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Successfully deleted workout!")
+        super().delete(request, *args, **kwargs)
 
 
 class WorkoutFormSetView(LoginRequiredMixin, View):
