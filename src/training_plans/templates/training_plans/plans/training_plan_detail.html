@@ -50,33 +50,6 @@
       <div class="col-lg-8">
         <h1 class="display-title mb-3">{{ training_plan.name }}</h1>
         <p class="lead text-secondary">{{ training_plan.description }}</p>
-
-        <!-- Plan Status Badges -->
-        <div class="d-flex gap-2 flex-wrap mb-3">
-          {% if training_plan.is_active %}
-            <span class="badge bg-success">
-              <i class="fas fa-check-circle me-1"></i>Active Plan
-            </span>
-          {% else %}
-            <span class="badge bg-secondary">
-              <i class="fas fa-pause-circle me-1"></i>Inactive
-            </span>
-          {% endif %}
-
-          {% if training_plan.is_public %}
-            <span class="badge bg-info">
-              <i class="fas fa-globe me-1"></i>Public
-            </span>
-          {% else %}
-            <span class="badge bg-secondary">
-              <i class="fas fa-lock me-1"></i>Private
-            </span>
-          {% endif %}
-
-          <span class="badge bg-secondary">
-            <i class="fas fa-calendar-alt me-1"></i>{{ training_plan.workouts.count }} Workout{{ training_plan.workouts.count|pluralize }}
-          </span>
-        </div>
       </div>
 
       <div class="col-lg-4 text-lg-end">
@@ -171,55 +144,6 @@
           </div>
         </div>
       {% endfor %}
-    </div>
-  </section>
-
-  <!-- Quick Stats Section -->
-  <div class="divider"></div>
-
-  <section class="section">
-    <div class="section-header">
-      <h3>Plan Statistics</h3>
-    </div>
-
-    <div class="row g-4 text-center">
-      <div class="col-md-3 col-6">
-        <div class="icon mb-2">
-          <i class="fas fa-calendar-check text-gradient"></i>
-        </div>
-        <h4 class="mb-1">{{ training_plan.workouts.count }}</h4>
-        <p class="text-secondary small">Total Workouts</p>
-      </div>
-
-      <div class="col-md-3 col-6">
-        <div class="icon mb-2">
-          <i class="fas fa-dumbbell text-gradient"></i>
-        </div>
-        <h4 class="mb-1">{{ total_exercises }}</h4>
-        <p class="text-secondary small">Total Exercises</p>
-      </div>
-
-      <div class="col-md-3 col-6">
-        <div class="icon mb-2">
-          <i class="fas fa-users text-gradient"></i>
-        </div>
-        <h4 class="mb-1">{{ training_plan.user_usages.count }}</h4>
-        <p class="text-secondary small">Users Following</p>
-      </div>
-
-      <div class="col-md-3 col-6">
-        <div class="icon mb-2">
-          <i class="fas fa-star text-gradient"></i>
-        </div>
-        <h4 class="mb-1">
-          {% if avg_rating %}
-            {{ avg_rating|floatformat:1 }}
-          {% else %}
-            N/A
-          {% endif %}
-        </h4>
-        <p class="text-secondary small">Average Rating</p>
-      </div>
     </div>
   </section>
 </div>

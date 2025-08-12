@@ -47,40 +47,14 @@
   <section class="mb-5">
     <div class="row align-items-center">
       <div class="col-lg-8">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-3">
-          <ol class="breadcrumb" style="background: transparent; padding: 0;">
-            <li class="breadcrumb-item">
-              <a href="{% url 'training_plan_list' %}" class="text-decoration-none">My Plans</a>
-            </li>
-            <li class="breadcrumb-item">
-              <a href="{% url 'training_plan_detail' pk=workout.training_plan.pk %}" class="text-decoration-none">
-                {{ workout.training_plan.name }}
-              </a>
-            </li>
-            <li class="breadcrumb-item active text-primary">{{ workout.day|title }}</li>
-          </ol>
-        </nav>
-
         <h1 class="display-title mb-3">{{ workout.name }}</h1>
         <p class="lead text-secondary">{{ workout.description }}</p>
 
-        <!-- Workout Info Badges -->
+        <!-- Basic Info Badge -->
         <div class="d-flex gap-2 flex-wrap">
           <span class="badge bg-gradient-primary">
             <i class="fas fa-calendar-day me-1"></i>{{ workout.day|title }}
           </span>
-          <span class="badge bg-secondary">
-            <i class="fas fa-dumbbell me-1"></i>{{ workout.exercises.count }} Exercise{{ workout.exercises.count|pluralize }}
-          </span>
-          {% with total_sets=0 %}
-            {% for exercise in workout.exercises.all %}
-              {% with total_sets=total_sets|add:exercise.exercise_sets.count %}{% endwith %}
-            {% endfor %}
-            <span class="badge bg-secondary">
-              <i class="fas fa-list-ol me-1"></i>{{ total_sets }} Total Sets
-            </span>
-          {% endwith %}
         </div>
       </div>
 
@@ -192,96 +166,5 @@
       </div>
     {% endif %}
   </section>
-
-  <!-- Workout Summary Stats -->
-  {% if workout.exercises.count > 0 %}
-    <div class="divider"></div>
-
-    <section class="section">
-      <div class="section-header mb-4">
-        <h3>Workout Summary</h3>
-      </div>
-
-      <div class="row g-4 text-center">
-        <div class="col-md-3 col-6">
-          <div class="card" style="background: var(--surface);">
-            <div class="card-body">
-              <div class="icon mb-2">
-                <i class="fas fa-dumbbell text-gradient"></i>
-              </div>
-              <h4 class="mb-1">{{ workout.exercises.count }}</h4>
-              <p class="text-secondary small mb-0">Total Exercises</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3 col-6">
-          <div class="card" style="background: var(--surface);">
-            <div class="card-body">
-              <div class="icon mb-2">
-                <i class="fas fa-list-ol text-gradient"></i>
-              </div>
-              <h4 class="mb-1">
-                {% with total_sets=0 %}
-                  {% for exercise in workout.exercises.all %}
-                    {% with total_sets=total_sets|add:exercise.exercise_sets.count %}{% endwith %}
-                  {% endfor %}
-                  {{ total_sets }}
-                {% endwith %}
-              </h4>
-              <p class="text-secondary small mb-0">Total Sets</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3 col-6">
-          <div class="card" style="background: var(--surface);">
-            <div class="card-body">
-              <div class="icon mb-2">
-                <i class="fas fa-redo text-gradient"></i>
-              </div>
-              <h4 class="mb-1">
-                {% with total_reps=0 %}
-                  {% for exercise in workout.exercises.all %}
-                    {% for set in exercise.exercise_sets.all %}
-                      {% with total_reps=total_reps|add:set.repetitions %}{% endwith %}
-                    {% endfor %}
-                  {% endfor %}
-                  {{ total_reps }}
-                {% endwith %}
-              </h4>
-              <p class="text-secondary small mb-0">Total Reps</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3 col-6">
-          <div class="card" style="background: var(--surface);">
-            <div class="card-body">
-              <div class="icon mb-2">
-                <i class="fas fa-clock text-gradient"></i>
-              </div>
-              <h4 class="mb-1">~45</h4>
-              <p class="text-secondary small mb-0">Est. Minutes</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  {% endif %}
-
-  <!-- Quick Actions -->
-  <div class="mt-5 text-center">
-    <p class="text-secondary mb-3">Quick Actions</p>
-    <div class="d-flex gap-2 justify-content-center flex-wrap">
-      <a href="{% url 'training_plan_detail' pk=workout.training_plan.pk %}" class="btn btn-outline-secondary btn-sm">
-        <i class="fas fa-clipboard-list me-1"></i>View Full Plan
-      </a>
-      <a href="{% url 'workout_edit_exercises' training_plan_pk=workout.training_plan.pk workout_pk=workout.pk %}"
-         class="btn btn-outline-accent btn-sm">
-        <i class="fas fa-plus me-1"></i>Add More Exercises
-      </a>
-    </div>
-  </div>
 </div>
 {% endblock %}
