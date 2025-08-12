@@ -35,12 +35,25 @@ class WorkoutExerciseForm(ModelForm):
     class Meta:
         model = WorkoutExercise
         fields = ["exercise"]
+        widgets = {"exercise": forms.Select(attrs={"class": "form-select"})}
 
 
 class ExerciseSetForm(ModelForm):
+    set_number = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+
     class Meta:
         model = ExerciseSet
-        fields = ["repetitions"]
+        fields = ["set_number", "repetitions"]
+        widgets = {
+            "repetitions": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "1",
+                    "max": "100",
+                    "placeholder": "10",
+                }
+            )
+        }
 
 
 WorkoutExerciseFormSet = inlineformset_factory(

@@ -33,7 +33,7 @@ class WorkoutCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            "workout_edit",
+            "workout_edit_exercises",
             kwargs={
                 "training_plan_pk": self.object.training_plan.pk,
                 "workout_pk": self.object.pk,
@@ -118,7 +118,7 @@ class WorkoutFormSetView(LoginRequiredMixin, View):
         )
         self.workout = get_object_or_404(Workout, pk=kwargs.get("workout_pk"))
 
-    def get(self):
+    def get(self, request, *args, **kwargs):
         workout_exercise_formset = WorkoutExerciseFormSet(
             instance=self.workout, prefix="exercises"
         )
@@ -142,7 +142,7 @@ class WorkoutFormSetView(LoginRequiredMixin, View):
             self.request, "training_plans/workouts/workout_exercises_form.html", context
         )
 
-    def post(self):
+    def post(self, request, *args, **kwargs):
         workout_exercise_formset = WorkoutExerciseFormSet(
             self.request.POST, instance=self.workout, prefix="exercises"
         )
@@ -164,7 +164,12 @@ class WorkoutFormSetView(LoginRequiredMixin, View):
             )
             if all_valid:
                 for exercise_set_formset in exercise_set_formsets:
-                    exercise_set_formset.save()
+                    sets = exercise_set_formset.save(commit=False)
+                    for j, set_obj in enumerate(sets):
+                        set_obj.set_number = j + 1
+                        set_obj.save()
+                    exercise_set_formset.save_m2m()
+                messages.success(request, "Workout exercises updated successfully!")
                 return redirect(
                     "workout_detail",
                     training_plan_pk=self.training_plan.pk,
