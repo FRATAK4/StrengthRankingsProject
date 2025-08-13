@@ -12,11 +12,11 @@ class GroupDashboardView(View):
     pass
 
 
-class OwnedGroupListView(ListView):
+class GroupOwnedListView(ListView):
     pass
 
 
-class JoinedGroupListView(ListView):
+class GroupJoinedListView(ListView):
     pass
 
 
