@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ object.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'workout_detail' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Workout
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="section">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+          <h1 class="display-title">Edit Workout</h1>
+          <p class="text-secondary">Update your {{ object.day|title }} workout</p>
+        </div>
+
+        <!-- Current Workout Info -->
+        <div class="alert alert-info mb-4" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Editing:</strong>&nbsp;{{ object.name }}
+              </div>
+              <div class="small">
+                <i class="fas fa-calendar-day me-1"></i>{{ object.day|title }} •
+                <i class="fas fa-clipboard-list me-1"></i>{{ object.training_plan.name }} •
+                <i class="fas fa-dumbbell me-1"></i>{{ object.exercises.count }} exercise{{ object.exercises.count|pluralize }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card profile-card">
+          <div class="card-body p-4">
+            <!-- Display Messages -->
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-coreui-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post" action="{% url 'workout_edit' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}">
+              {% csrf_token %}
+
+              <!-- Form Errors -->
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              <!-- Day Badge (Read-only) -->
+              <div class="mb-4">
+                <label class="form-label">
+                  <i class="fas fa-calendar-day me-1"></i>Scheduled Day
+                </label>
+                <div class="d-inline-block w-100">
+                  <div class="card" style="background: var(--gradient-primary);">
+                    <div class="card-body py-2 px-3">
+                      <strong style="color: var(--bg-primary);">{{ object.day|title }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <small class="text-secondary">Day cannot be changed. Create a new workout for a different day.</small>
+              </div>
+
+              <!-- Workout Name Field -->
+              <div class="mb-4">
+                <label for="{{ form.name.id_for_label }}" class="form-label">
+                  <i class="fas fa-dumbbell me-1"></i>Workout Name
+                </label>
+                <input
+                  type="text"
+                  name="{{ form.name.name }}"
+                  class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                  id="{{ form.name.id_for_label }}"
+                  value="{{ form.name.value|default:object.name }}"
+                  placeholder="e.g., Upper Body Strength, Leg Day, Push Workout"
+                  maxlength="50"
+                  required
+                  autofocus
+                >
+                {% if form.name.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.name.errors.0 }}
+                  </div>
+                {% endif %}
+                <small class="text-secondary">Give your workout a descriptive name</small>
+              </div>
+
+              <!-- Workout Description Field -->
+              <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="form-label">
+                  <i class="fas fa-align-left me-1"></i>Description
+                </label>
+                <textarea
+                  name="{{ form.description.name }}"
+                  class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                  id="{{ form.description.id_for_label }}"
+                  rows="4"
+                  placeholder="Describe the workout focus, target muscles, intensity level, etc."
+                  required
+                >{{ form.description.value|default:object.description }}</textarea>
+                {% if form.description.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.description.errors.0 }}
+                  </div>
+                {% endif %}
+                <small class="text-secondary">Explain what this workout targets and any special instructions</small>
+              </div>
+
+              <div class="divider"></div>
+
+              <!-- Form Actions -->
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+                <a href="{% url 'workout_detail' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}"
+                   class="btn btn-outline-secondary">
+                  <i class="fas fa-times me-2"></i>Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="mt-4">
+          <div class="card" style="background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3);">
+            <div class="card-body">
+              <h6 class="text-warning mb-3">
+                <i class="fas fa-tools me-2"></i>Manage Exercises
+              </h6>
+              <p class="small text-secondary mb-3">
+                This form only updates the workout name and description. To manage exercises and sets:
+              </p>
+              <a href="{% url 'workout_edit_exercises' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}"
+                 class="btn btn-outline-accent btn-sm">
+                <i class="fas fa-list me-2"></i>Edit Exercises & Sets
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

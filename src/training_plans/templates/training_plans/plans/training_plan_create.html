@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Create Training Plan{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'training_plan_list' %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Plans
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="section">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+          <h1 class="display-title">Create Training Plan</h1>
+          <p class="text-secondary">Design your perfect workout routine</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card profile-card">
+          <div class="card-body p-4">
+            <!-- Display Messages -->
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-coreui-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post" action="{% url 'training_plan_create' %}">
+              {% csrf_token %}
+
+              <!-- Form Errors -->
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              <!-- Plan Name Field -->
+              <div class="mb-4">
+                <label for="{{ form.name.id_for_label }}" class="form-label">
+                  <i class="fas fa-tag me-1"></i>Plan Name
+                </label>
+                {{ form.name.errors }}
+                <input
+                  type="text"
+                  name="{{ form.name.name }}"
+                  class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                  id="{{ form.name.id_for_label }}"
+                  value="{{ form.name.value|default:'' }}"
+                  placeholder="e.g., Push Pull Legs, Full Body Workout"
+                  maxlength="50"
+                  required
+                  autofocus
+                >
+                {% if form.name.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.name.errors.0 }}
+                  </div>
+                {% endif %}
+                <small class="text-secondary">Give your plan a memorable name (max 50 characters)</small>
+              </div>
+
+              <!-- Plan Description Field -->
+              <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="form-label">
+                  <i class="fas fa-align-left me-1"></i>Description
+                </label>
+                <textarea
+                  name="{{ form.description.name }}"
+                  class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                  id="{{ form.description.id_for_label }}"
+                  rows="4"
+                  placeholder="Describe your training plan goals, target muscles, frequency, etc."
+                  required
+                >{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                  <div class="invalid-feedback">
+                    {{ form.description.errors.0 }}
+                  </div>
+                {% endif %}
+                <small class="text-secondary">Explain what this plan is designed to achieve</small>
+              </div>
+
+              <div class="divider"></div>
+
+              <!-- Form Actions -->
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="fas fa-save me-2"></i>Create Training Plan
+                </button>
+                <a href="{% url 'training_plan_list' %}" class="btn btn-outline-secondary">
+                  <i class="fas fa-times me-2"></i>Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Helper Tips -->
+        <div class="mt-4">
+          <div class="card" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+            <div class="card-body">
+              <h6 class="text-gradient mb-3">
+                <i class="fas fa-lightbulb me-2"></i>Pro Tips
+              </h6>
+              <ul class="small text-secondary mb-0">
+                <li>Start with a clear goal - strength, hypertrophy, or endurance</li>
+                <li>Plan for 3-6 workouts per week for optimal results</li>
+                <li>Include rest days for recovery</li>
+                <li>You can add workouts to each day after creating the plan</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

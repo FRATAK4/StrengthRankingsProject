@@ -1,4 +1,5 @@
 from django.forms.models import ModelForm, inlineformset_factory
+from django import forms
 from .models import TrainingPlan, Workout, WorkoutExercise, ExerciseSet
 
 
@@ -6,6 +7,22 @@ class TrainingPlanForm(ModelForm):
     class Meta:
         model = TrainingPlan
         fields = ["name", "description"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g., Push Pull Legs, Full Body Workout",
+                    "maxlength": "50",
+                }
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Describe your training plan goals, target muscles, frequency, etc.",
+                }
+            ),
+        }
 
 
 class WorkoutForm(ModelForm):
@@ -18,12 +35,25 @@ class WorkoutExerciseForm(ModelForm):
     class Meta:
         model = WorkoutExercise
         fields = ["exercise"]
+        widgets = {"exercise": forms.Select(attrs={"class": "form-select"})}
 
 
 class ExerciseSetForm(ModelForm):
+    set_number = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+
     class Meta:
         model = ExerciseSet
-        fields = ["repetitions"]
+        fields = ["set_number", "repetitions"]
+        widgets = {
+            "repetitions": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "1",
+                    "max": "100",
+                    "placeholder": "10",
+                }
+            )
+        }
 
 
 WorkoutExerciseFormSet = inlineformset_factory(

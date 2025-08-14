@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ object.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'training_plan_detail' pk=object.pk %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Plan
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="section">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <!-- Warning Icon -->
+        <div class="text-center mb-4">
+          <div class="icon mb-3" style="width: 100px; height: 100px; margin: 0 auto; background: rgba(239, 68, 68, 0.1);">
+            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem !important; line-height: 100px;"></i>
+          </div>
+          <h1 class="display-title text-danger">Delete Training Plan?</h1>
+        </div>
+
+        <!-- Deletion Warning Card -->
+        <div class="card profile-card mb-4" style="border: 2px solid rgba(239, 68, 68, 0.3);">
+          <div class="card-body p-4">
+            <h5 class="mb-3">You are about to delete:</h5>
+
+            <!-- Plan Details -->
+            <div class="p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.05);">
+              <h4 class="text-primary mb-2">{{ object.name }}</h4>
+              <p class="text-secondary mb-3">{{ object.description|truncatechars:150 }}</p>
+
+              <!-- Plan Statistics -->
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">{{ object.workouts.count }}</div>
+                  <small class="text-secondary">Workout{{ object.workouts.count|pluralize }}</small>
+                </div>
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">
+                    {% with total_exercises=0 %}
+                      {% for workout in object.workouts.all %}
+                        {{ workout.exercises.count|add:total_exercises }}
+                      {% endfor %}
+                    {% endwith %}
+                    {{ object.workouts.all|length }}
+                  </div>
+                  <small class="text-secondary">Exercise{{ object.workouts.all|length|pluralize }}</small>
+                </div>
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">{{ object.user_usages.count }}</div>
+                  <small class="text-secondary">User{{ object.user_usages.count|pluralize }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warning Message -->
+            <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+              <h6 class="alert-heading mb-2">
+                <i class="fas fa-exclamation-circle me-2"></i>This action cannot be undone!
+              </h6>
+              <p class="mb-2">Deleting this training plan will permanently remove:</p>
+              <ul class="mb-0 small">
+                <li>All workouts associated with this plan</li>
+                <li>All exercises and sets within those workouts</li>
+                <li>Any ratings or usage history</li>
+                <li>Progress tracking data linked to this plan</li>
+              </ul>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="post" action="{% url 'training_plan_delete' pk=object.pk %}">
+              {% csrf_token %}
+
+              <!-- Confirmation Checkbox -->
+              <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                <label class="form-check-label" for="confirmDelete">
+                  I understand this action is permanent and cannot be reversed
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <!-- Action Buttons -->
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                  <i class="fas fa-trash me-2"></i>Yes, Delete Training Plan
+                </button>
+                <a href="{% url 'training_plan_detail' pk=object.pk %}" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-2"></i>Cancel, Keep Plan
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Alternative Actions -->
+        <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+          <div class="card-body">
+            <h6 class="text-gradient mb-3">
+              <i class="fas fa-lightbulb me-2"></i>Consider These Alternatives
+            </h6>
+            <ul class="small text-secondary mb-0">
+              <li>
+                <strong>Deactivate instead:</strong> Keep the plan but mark it as inactive
+              </li>
+              <li>
+                <strong>Edit the plan:</strong> Modify it to better suit your needs
+              </li>
+              <li>
+                <strong>Create a copy:</strong> Start fresh while keeping the original
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% block extra_js %}
+<script>
+// Enable delete button only when checkbox is checked
+document.getElementById('confirmDelete').addEventListener('change', function() {
+  document.getElementById('deleteBtn').disabled = !this.checked;
+});
+</script>
+{% endblock %}
+{% endblock %}
