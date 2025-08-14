@@ -65,7 +65,9 @@ urlpatterns = [
         GroupDeclineRequestView.as_view(),
         name="group_request_decline",
     ),
-    path("joined/", GroupJoinedListView.as_view(), name="group_joined_list"),
+    path(
+        "joined/", GroupJoinedListView.as_view(), name="group_joined_list"
+    ),  # owned gruops, my gropu groups/joined?owned=true, ...
     path(
         "joined/<int:pk>/", GroupJoinedDetailView.as_view(), name="group_joined_detail"
     ),
