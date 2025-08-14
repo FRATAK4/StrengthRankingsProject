@@ -16,15 +16,11 @@ class GroupOwnedListView(ListView):
     pass
 
 
-class GroupJoinedListView(ListView):
-    pass
-
-
 class GroupCreateView(CreateView):
     pass
 
 
-class GroupDetailView(DetailView):
+class GroupOwnedDetailView(DetailView):
     pass
 
 
@@ -36,5 +32,57 @@ class GroupDeleteView(DeleteView):
     pass
 
 
-class GroupSearchView(View):
+class GroupOwnedUserListView(ListView):
+    pass
+
+
+class GroupUserKickView(View):
+    pass
+
+
+class GroupUserBlockView(View):
+    pass
+
+
+class GroupRequestListView(ListView):
+    pass
+
+
+class GroupAcceptRequestView(View):
+    pass
+
+
+class GroupDeclineRequestView(View):
+    pass
+
+
+class GroupOwnedRankingsView(ListView):
+    pass
+
+
+class GroupJoinedListView(ListView):
+    pass
+
+
+class GroupJoinedDetailView(DetailView):
+    pass
+
+
+class GroupExitView(DeleteView):
+    pass
+
+
+class GroupJoinedUserListView(ListView):
+    pass
+
+
+class GroupJoinedRankingsView(ListView):
+    pass
+
+
+class GroupSearchView(ListView):
+    pass
+
+
+class GroupSendRequestView(View):
     pass
