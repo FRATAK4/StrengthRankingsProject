@@ -65,7 +65,7 @@
              class="btn btn-outline-secondary">
             <i class="fas fa-edit me-2"></i>Edit Info
           </a>
-          <a href="{% url 'workout_edit_exercises' training_plan_pk=workout.training_plan.pk workout_pk=workout.pk %}"
+          <a href="{% url 'workout_exercises_manage' training_plan_pk=workout.training_plan.pk workout_pk=workout.pk %}"
              class="btn btn-primary">
             <i class="fas fa-list me-2"></i>Manage Exercises
           </a>
@@ -159,7 +159,7 @@
         <p class="text-secondary mb-4">
           This workout doesn't have any exercises. Add some to get started!
         </p>
-        <a href="{% url 'workout_edit_exercises' training_plan_pk=workout.training_plan.pk workout_pk=workout.pk %}"
+        <a href="{% url 'workout_exercises_manage' training_plan_pk=workout.training_plan.pk workout_pk=workout.pk %}"
            class="btn btn-primary btn-lg">
           <i class="fas fa-plus me-2"></i>Add Exercises
         </a>

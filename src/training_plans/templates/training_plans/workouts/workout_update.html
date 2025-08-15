@@ -179,7 +179,7 @@
               <p class="small text-secondary mb-3">
                 This form only updates the workout name and description. To manage exercises and sets:
               </p>
-              <a href="{% url 'workout_edit_exercises' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}"
+              <a href="{% url 'workout_exercises_manage' training_plan_pk=object.training_plan.pk workout_pk=object.pk %}"
                  class="btn btn-outline-accent btn-sm">
                 <i class="fas fa-list me-2"></i>Edit Exercises & Sets
               </a>

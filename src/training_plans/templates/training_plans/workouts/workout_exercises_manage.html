@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Exercises - {{ workout.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'workout_detail' training_plan_pk=training_plan.pk workout_pk=workout.pk %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Workout
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="section">
+    <!-- Page Header -->
+    <div class="text-center mb-5">
+      <h1 class="display-title">
+        {% if is_editing %}Edit{% else %}Add{% endif %} Exercises
+      </h1>
+      <p class="lead text-secondary">{{ workout.name }} - {{ workout.day|title }}</p>
+    </div>
+
+    <!-- Workout Info Alert -->
+    <div class="alert alert-info mb-4" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+      <div class="d-flex align-items-center">
+        <i class="fas fa-info-circle me-2"></i>
+        <div>
+          <strong>Managing exercises for:</strong> {{ workout.name }}
+          <div class="small">
+            <i class="fas fa-clipboard-list me-1"></i>{{ training_plan.name }} •
+            <i class="fas fa-calendar-day me-1"></i>{{ workout.day|title }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Display Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-coreui-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Main Form -->
+    <form method="post" id="exercisesForm">
+      {% csrf_token %}
+
+      <!-- Formset Management Forms -->
+      {{ workout_exercise_formset.management_form }}
+
+      <!-- Exercises Container -->
+      <div id="exercisesContainer">
+        {% for exercise_form in workout_exercise_formset %}
+          <div class="exercise-item card profile-card mb-4" data-exercise-index="{{ forloop.counter0 }}">
+            <div class="card-body">
+              <!-- Exercise Header -->
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">
+                  <span class="badge bg-gradient-primary me-2">Exercise {{ forloop.counter }}</span>
+                </h5>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-exercise" title="Remove Exercise">
+                  <i class="fas fa-trash"></i> Remove Exercise
+                </button>
+              </div>
+
+              <!-- Exercise Form Fields -->
+              <div class="mb-3">
+                {{ exercise_form.id }}
+                {% for hidden in exercise_form.hidden_fields %}
+                  {{ hidden }}
+                {% endfor %}
+
+                <label class="form-label">
+                  <i class="fas fa-dumbbell me-1"></i>Select Exercise
+                </label>
+                {{ exercise_form.exercise }}
+
+                {% if exercise_form.exercise.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ exercise_form.exercise.errors.0 }}
+                  </div>
+                {% endif %}
+
+                <!-- Delete checkbox (hidden) -->
+                <div style="display: none;">
+                  {{ exercise_form.DELETE }}
+                </div>
+              </div>
+
+              <!-- Sets Section -->
+              <div class="sets-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="text-gradient mb-0">
+                    <i class="fas fa-list-ol me-1"></i>Sets & Reps
+                  </h6>
+                  <button type="button" class="btn btn-sm btn-outline-accent add-set" data-exercise-index="{{ forloop.counter0 }}">
+                    <i class="fas fa-plus me-1"></i>Add Set
+                  </button>
+                </div>
+
+                <!-- Sets Management Form -->
+                {% with exercise_set_formset=exercise_set_formsets|default:None %}
+                  {% if forloop.counter0 < exercise_set_formsets|length %}
+                    {% with current_set_formset=exercise_set_formsets|slice:forloop.counter0|first %}
+                      {{ current_set_formset.management_form }}
+
+                      <div class="sets-container" data-exercise-index="{{ forloop.counter0 }}">
+                        {% for set_form in current_set_formset %}
+                          <div class="set-item d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-secondary">Set {{ forloop.counter }}</span>
+
+                            {{ set_form.id }}
+                            {% for hidden in set_form.hidden_fields %}
+                              {{ hidden }}
+                            {% endfor %}
+
+                            <div class="flex-grow-1" style="max-width: 150px;">
+                              {{ set_form.repetitions }}
+                            </div>
+
+                            <span class="text-secondary">reps</span>
+
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-set" title="Remove Set">
+                              <i class="fas fa-times"></i>
+                            </button>
+
+                            <!-- Delete checkbox (hidden) -->
+                            <div style="display: none;">
+                              {{ set_form.DELETE }}
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endwith %}
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Add Exercise Button -->
+      <div class="text-center mb-4">
+        <button type="button" id="addExercise" class="btn btn-outline-accent btn-lg">
+          <i class="fas fa-plus me-2"></i>Add New Exercise
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Form Actions -->
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fas fa-save me-2"></i>
+          {% if is_editing %}Save Changes{% else %}Save Exercises{% endif %}
+        </button>
+        <a href="{% url 'workout_detail' training_plan_pk=training_plan.pk workout_pk=workout.pk %}"
+           class="btn btn-outline-secondary">
+          <i class="fas fa-times me-2"></i>Cancel
+        </a>
+      </div>
+    </form>
+
+    <!-- Helper Tips -->
+    <div class="mt-4">
+      <div class="card" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+        <div class="card-body">
+          <h6 class="text-gradient mb-3">
+            <i class="fas fa-lightbulb me-2"></i>Tips for Building Your Workout
+          </h6>
+          <ul class="small text-secondary mb-0">
+            <li>Start with compound exercises (squat, deadlift, bench press)</li>
+            <li>Add 3-4 sets for main exercises, 2-3 for accessories</li>
+            <li>Adjust reps based on your goal: 1-5 for strength, 6-12 for hypertrophy, 12+ for endurance</li>
+            <li>Order exercises from most to least demanding</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get initial counts
+    let exerciseCount = document.querySelectorAll('.exercise-item').length;
+
+    // Function to update form indices
+    function updateFormIndices() {
+        const exerciseItems = document.querySelectorAll('.exercise-item');
+
+        exerciseItems.forEach((item, exerciseIndex) => {
+            // Update exercise form indices
+            item.setAttribute('data-exercise-index', exerciseIndex);
+
+            // Update exercise number display
+            const badge = item.querySelector('.badge.bg-gradient-primary');
+            if (badge) {
+                badge.textContent = `Exercise ${exerciseIndex + 1}`;
+            }
+
+            // Update all form inputs for this exercise
+            const inputs = item.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    // Update exercise formset fields
+                    if (name.includes('exercises-')) {
+                        const newName = name.replace(/exercises-\d+-/, `exercises-${exerciseIndex}-`);
+                        input.setAttribute('name', newName);
+                        const id = input.getAttribute('id');
+                        if (id) {
+                            const newId = id.replace(/exercises_\d+_/, `exercises_${exerciseIndex}_`);
+                            input.setAttribute('id', newId);
+                        }
+                    }
+                    // Update sets formset fields
+                    else if (name.includes('sets-')) {
+                        const setMatch = name.match(/sets-\d+-(\d+)-/);
+                        if (setMatch) {
+                            const setIndex = setMatch[1];
+                            const newName = name.replace(/sets-\d+-/, `sets-${exerciseIndex}-`);
+                            input.setAttribute('name', newName);
+                            const id = input.getAttribute('id');
+                            if (id) {
+                                const newId = id.replace(/sets_\d+_/, `sets_${exerciseIndex}_`);
+                                input.setAttribute('id', newId);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update sets container
+            const setsContainer = item.querySelector('.sets-container');
+            if (setsContainer) {
+                setsContainer.setAttribute('data-exercise-index', exerciseIndex);
+                updateSetNumbers(setsContainer);
+            }
+
+            // Update add set button
+            const addSetBtn = item.querySelector('.add-set');
+            if (addSetBtn) {
+                addSetBtn.setAttribute('data-exercise-index', exerciseIndex);
+            }
+        });
+
+        // Update total forms count
+        const totalFormsInput = document.querySelector('#id_exercises-TOTAL_FORMS');
+        if (totalFormsInput) {
+            totalFormsInput.value = exerciseItems.length;
+        }
+    }
+
+    // Function to update set numbers
+    function updateSetNumbers(setsContainer) {
+        const setItems = setsContainer.querySelectorAll('.set-item');
+        setItems.forEach((item, index) => {
+            const badge = item.querySelector('.badge.bg-secondary');
+            if (badge) {
+                badge.textContent = `Set ${index + 1}`;
+            }
+        });
+    }
+
+    // Add Exercise functionality
+    document.getElementById('addExercise').addEventListener('click', function() {
+        const container = document.getElementById('exercisesContainer');
+        const totalForms = document.querySelector('#id_exercises-TOTAL_FORMS');
+        const currentCount = parseInt(totalForms.value);
+
+        // Create new exercise item
+        const newExercise = document.createElement('div');
+        newExercise.className = 'exercise-item card profile-card mb-4';
+        newExercise.setAttribute('data-exercise-index', currentCount);
+
+        newExercise.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <span class="badge bg-gradient-primary me-2">Exercise ${currentCount + 1}</span>
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-exercise" title="Remove Exercise">
+                        <i class="fas fa-trash"></i> Remove Exercise
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-dumbbell me-1"></i>Select Exercise
+                    </label>
+                    <select name="exercises-${currentCount}-exercise" id="id_exercises_${currentCount}_exercise" class="form-select">
+                        <option value="">---------</option>
+                        ${getExerciseOptions()}
+                    </select>
+                    <input type="hidden" name="exercises-${currentCount}-DELETE" id="id_exercises_${currentCount}_DELETE">
+                </div>
+
+                <div class="sets-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-gradient mb-0">
+                            <i class="fas fa-list-ol me-1"></i>Sets & Reps
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-accent add-set" data-exercise-index="${currentCount}">
+                            <i class="fas fa-plus me-1"></i>Add Set
+                        </button>
+                    </div>
+
+                    <input type="hidden" name="sets-${currentCount}-TOTAL_FORMS" value="1" id="id_sets-${currentCount}-TOTAL_FORMS">
+                    <input type="hidden" name="sets-${currentCount}-INITIAL_FORMS" value="0" id="id_sets-${currentCount}-INITIAL_FORMS">
+                    <input type="hidden" name="sets-${currentCount}-MIN_NUM_FORMS" value="1" id="id_sets-${currentCount}-MIN_NUM_FORMS">
+                    <input type="hidden" name="sets-${currentCount}-MAX_NUM_FORMS" value="50" id="id_sets-${currentCount}-MAX_NUM_FORMS">
+
+                    <div class="sets-container" data-exercise-index="${currentCount}">
+                        <div class="set-item d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-secondary">Set 1</span>
+                            <div class="flex-grow-1" style="max-width: 150px;">
+                                <input type="number" name="sets-${currentCount}-0-repetitions" class="form-control" min="1" max="100" placeholder="10" id="id_sets-${currentCount}-0-repetitions">
+                            </div>
+                            <span class="text-secondary">reps</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-set" title="Remove Set">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div style="display: none;">
+                                <input type="hidden" name="sets-${currentCount}-0-DELETE" id="id_sets-${currentCount}-0-DELETE">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(newExercise);
+        totalForms.value = currentCount + 1;
+
+        // Attach event listeners to new elements
+        attachExerciseEventListeners(newExercise);
+    });
+
+    // Function to get exercise options from first select
+    function getExerciseOptions() {
+        const firstSelect = document.querySelector('select[name*="exercise"]');
+        if (firstSelect) {
+            return firstSelect.innerHTML;
+        }
+        return '<option value="">---------</option>';
+    }
+
+    // Add Set functionality
+    function handleAddSet(button) {
+        const exerciseIndex = button.getAttribute('data-exercise-index');
+        const setsContainer = button.closest('.sets-section').querySelector('.sets-container');
+        const totalFormsInput = document.querySelector(`#id_sets-${exerciseIndex}-TOTAL_FORMS`);
+        const currentCount = parseInt(totalFormsInput.value || 0);
+
+        // Create new set item
+        const newSet = document.createElement('div');
+        newSet.className = 'set-item d-flex align-items-center gap-2 mb-2';
+        newSet.innerHTML = `
+            <span class="badge bg-secondary">Set ${currentCount + 1}</span>
+            <div class="flex-grow-1" style="max-width: 150px;">
+                <input type="number" name="sets-${exerciseIndex}-${currentCount}-repetitions"
+                       class="form-control" min="1" max="100" placeholder="10"
+                       id="id_sets-${exerciseIndex}-${currentCount}-repetitions">
+            </div>
+            <span class="text-secondary">reps</span>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-set" title="Remove Set">
+                <i class="fas fa-times"></i>
+            </button>
+            <div style="display: none;">
+                <input type="hidden" name="sets-${exerciseIndex}-${currentCount}-DELETE"
+                       id="id_sets-${exerciseIndex}-${currentCount}-DELETE">
+            </div>
+        `;
+
+        setsContainer.appendChild(newSet);
+        totalFormsInput.value = currentCount + 1;
+
+        // Attach event listener to remove button
+        newSet.querySelector('.remove-set').addEventListener('click', function() {
+            handleRemoveSet(this);
+        });
+    }
+
+    // Remove Exercise functionality
+    function handleRemoveExercise(button) {
+        const exerciseItem = button.closest('.exercise-item');
+        const deleteInput = exerciseItem.querySelector('input[name$="-DELETE"]');
+
+        if (deleteInput && exerciseItem.querySelector('input[name$="-id"]')) {
+            // Existing exercise - mark for deletion
+            deleteInput.value = '1';
+            exerciseItem.style.display = 'none';
+        } else {
+            // New exercise - remove from DOM
+            exerciseItem.remove();
+            updateFormIndices();
+        }
+    }
+
+    // Remove Set functionality
+    function handleRemoveSet(button) {
+        const setItem = button.closest('.set-item');
+        const setsContainer = setItem.closest('.sets-container');
+        const deleteInput = setItem.querySelector('input[name$="-DELETE"]');
+
+        if (deleteInput && setItem.querySelector('input[name$="-id"]')) {
+            // Existing set - mark for deletion
+            deleteInput.value = '1';
+            setItem.style.display = 'none';
+        } else {
+            // New set - remove from DOM
+            setItem.remove();
+        }
+
+        updateSetNumbers(setsContainer);
+    }
+
+    // Attach event listeners to existing elements
+    function attachExerciseEventListeners(exerciseItem) {
+        // Remove exercise button
+        const removeExerciseBtn = exerciseItem.querySelector('.remove-exercise');
+        if (removeExerciseBtn) {
+            removeExerciseBtn.addEventListener('click', function() {
+                handleRemoveExercise(this);
+            });
+        }
+
+        // Add set button
+        const addSetBtn = exerciseItem.querySelector('.add-set');
+        if (addSetBtn) {
+            addSetBtn.addEventListener('click', function() {
+                handleAddSet(this);
+            });
+        }
+
+        // Remove set buttons
+        const removeSetBtns = exerciseItem.querySelectorAll('.remove-set');
+        removeSetBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                handleRemoveSet(this);
+            });
+        });
+    }
+
+    // Initialize event listeners for existing elements
+    document.querySelectorAll('.exercise-item').forEach(attachExerciseEventListeners);
+});
+</script>
+{% endblock %}
+{% endblock %}

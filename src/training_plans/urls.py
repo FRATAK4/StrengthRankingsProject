@@ -11,8 +11,7 @@ from .views.workouts_views import (
     WorkoutCreateView,
     WorkoutDetailView,
     WorkoutUpdateView,
-    WorkoutFormSetView,
-    WorkoutDeleteView,
+    WorkoutDeleteView, WorkoutExercisesManageView,
 )
 
 urlpatterns = [
@@ -42,8 +41,8 @@ urlpatterns = [
         name="workout_delete",
     ),
     path(
-        "<int:training_plan_pk>/<int:workout_pk>/edit_exercises",
-        WorkoutFormSetView.as_view(),
-        name="workout_edit_exercises",
+        "<int:training_plan_pk>/<int:workout_pk>/exercises_manage",
+        WorkoutExercisesManageView.as_view(),
+        name="workout_exercises_manage",
     ),
 ]

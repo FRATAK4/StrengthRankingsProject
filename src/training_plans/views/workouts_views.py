@@ -33,7 +33,7 @@ class WorkoutCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            "workout_edit_exercises",
+            "workout_exercises_manage",
             kwargs={
                 "training_plan_pk": self.object.training_plan.pk,
                 "workout_pk": self.object.pk,
@@ -110,58 +110,57 @@ class WorkoutDeleteView(LoginRequiredMixin, DeleteView):
         super().delete(request, *args, **kwargs)
 
 
-class WorkoutFormSetView(LoginRequiredMixin, View):
+class WorkoutExercisesManageView(LoginRequiredMixin, View):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.training_plan = get_object_or_404(
             TrainingPlan, pk=kwargs.get("training_plan_pk")
         )
         self.workout = get_object_or_404(Workout, pk=kwargs.get("workout_pk"))
+        self.is_editing = self.workout.exercises.exists()
 
-    def get(self, request, *args, **kwargs):
+    def get_formsets(self, data=None):
         workout_exercise_formset = WorkoutExerciseFormSet(
-            instance=self.workout, prefix="exercises"
+            data, instance=self.workout, prefix="exercises"
         )
-        exercise_set_formsets = []
 
-        for i, form in enumerate(workout_exercise_formset.forms):
-            workout_exercise_instance = form.instance
+        exercise_set_formsets = []
+        for i, workout_exercise_form in enumerate(workout_exercise_formset.forms):
             formset = ExerciseSetFormSet(
-                instance=workout_exercise_instance, prefix=f"sets-{i}"
+                data,
+                instance=workout_exercise_form.instance,
+                prefix=f"sets-{i}"
             )
             exercise_set_formsets.append(formset)
+
+        return workout_exercise_formset, exercise_set_formsets
+
+    def get(self, request, *args, **kwargs):
+        workout_exercise_formset, exercise_set_formsets = self.get_formsets()
 
         context = {
             "training_plan": self.training_plan,
             "workout": self.workout,
             "workout_exercise_formset": workout_exercise_formset,
             "exercise_set_formsets": exercise_set_formsets,
+            "is_editing": self.is_editing,
         }
 
         return render(
-            self.request, "training_plans/workouts/workout_exercises_form.html", context
+            self.request, "training_plans/workouts/workout_exercises_manage.html", context
         )
 
     def post(self, request, *args, **kwargs):
-        workout_exercise_formset = WorkoutExerciseFormSet(
-            self.request.POST, instance=self.workout, prefix="exercises"
-        )
-        exercise_set_formsets = []
+        workout_exercise_formset, exercise_set_formsets = self.get_formsets(request.POST)
 
         if workout_exercise_formset.is_valid():
             workout_exercise_formset.save()
-            for i, workout_exercise_form in enumerate(workout_exercise_formset.forms):
-                exercise_set_formset = ExerciseSetFormSet(
-                    self.request.POST,
-                    instance=workout_exercise_form.instance,
-                    prefix=f"sets-{i}",
-                )
-                exercise_set_formsets.append(exercise_set_formset)
 
             all_valid = all(
                 exercise_set_formset.is_valid()
                 for exercise_set_formset in exercise_set_formsets
             )
+
             if all_valid:
                 for exercise_set_formset in exercise_set_formsets:
                     sets = exercise_set_formset.save(commit=False)
@@ -169,28 +168,24 @@ class WorkoutFormSetView(LoginRequiredMixin, View):
                         set_obj.set_number = j + 1
                         set_obj.save()
                     exercise_set_formset.save_m2m()
-                messages.success(request, "Workout exercises updated successfully!")
+
+                action = "updated" if self.is_editing else "created"
+                messages.success(request, f"Workout exercises {action} successfully!")
+
                 return redirect(
                     "workout_detail",
                     training_plan_pk=self.training_plan.pk,
                     workout_pk=self.workout.pk,
                 )
-        else:
-            for i, form in enumerate(workout_exercise_formset.forms):
-                formset = ExerciseSetFormSet(
-                    self.request.POST, instance=form.instance, prefix=f"sets-{i}"
-                )
-                exercise_set_formsets.append(formset)
 
         context = {
             "training_plan": self.training_plan,
             "workout": self.workout,
             "workout_exercise_formset": workout_exercise_formset,
-            "exercise_set_formsets": list(
-                zip(workout_exercise_formset.forms, exercise_set_formsets)
-            ),
+            "exercise_set_formsets": exercise_set_formsets,
+            "is_editing": self.is_editing,
         }
 
         return render(
-            self.request, "training_plans/workouts/workout_exercises_form.html", context
+            request, "training_plans/workouts/workout_exercises_manage.html", context
         )

@@ -11,6 +11,9 @@ class Exercise(models.Model):
     name = models.CharField(max_length=50, choices=Exercises.choices)
     description = models.TextField()
 
+    def __str__(self):
+        return self.name
+
 
 class MuscleActivation(models.Model):
     class Muscles(models.TextChoices):
