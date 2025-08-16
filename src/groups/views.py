@@ -4,12 +4,12 @@ from django.views.generic import (
     CreateView,
     DetailView,
     UpdateView,
-    DeleteView,
+    DeleteView, TemplateView,
 )
 
 
-class GroupDashboardView(View):
-    pass
+class GroupDashboardView(TemplateView):
+    template_name = "groups/group_dashboard.html"
 
 
 class GroupListView(ListView):
