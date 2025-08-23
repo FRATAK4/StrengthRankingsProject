@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.generic import (
     View,
     ListView,
@@ -7,6 +8,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
+
+from .forms import GroupForm
 from .models import Group
 
 
@@ -21,8 +24,17 @@ class GroupDashboardView(View):
         return render(self.request, "group_dashboard.html", context=context)
 
 class GroupCreateView(CreateView):
-    pass
+    form_class = GroupForm
+    template_name = "groups/group_create.html"
 
+    def get_success_url(self):
+        return reverse("group_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        group = form.save(commit=False)
+        group.admin_user = self.request.user
+        group.save()
+        return super().form_valid(form)
 
 class GroupDetailView(DetailView):
     pass
