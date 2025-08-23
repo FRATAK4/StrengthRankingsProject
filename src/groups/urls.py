@@ -2,7 +2,6 @@ from django.urls import path
 
 from .views import (
     GroupDashboardView,
-    GroupListView,
     GroupCreateView,
     GroupUpdateView,
     GroupDeleteView,
@@ -20,8 +19,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path("dashboard/", GroupDashboardView.as_view(), name="group_dashboard"),
-    path("", GroupListView.as_view(), name="group_list"),
+    path("", GroupDashboardView.as_view(), name="group_list"),
     path("create/", GroupCreateView.as_view(), name="group_create"),
     path("<int:pk>/", GroupDetailView.as_view(), name="group_detail"),
     path("<int:pk>/edit/", GroupUpdateView.as_view(), name="group_edit"),
