@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.generic import (
@@ -14,17 +15,30 @@ from .models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
 
 
-class GroupDashboardView(View):
-    def get(self):
+class GroupDashboardView(LoginRequiredMixin, ListView):
+    model = Group
+    template_name = "groups/group_dashboard.html"
+    context_object_name = "groups"
+
+    def get_queryset(self):
+        return Group.objects.none()
+
+    def get_context_data(
+        self, *, object_list = ..., **kwargs
+    ):
+        context = super().get_context_data()
+
         groups_hosted = self.request.user.groups_hosted.all()
-        groups_memberships = self.request.user.group_memberships.all()
-        groups_joined = groups_memberships.exclude(group__in=groups_hosted).values_list("group", flat=True)
-        groups_joined = groups_joined.filter(status="accepted")
-        context = {
-            "groups_hosted": groups_hosted,
-            "groups_joined": groups_joined,
-        }
-        return render(self.request, "group_dashboard.html", context=context)
+        groups_joined = Group.objects.filter(
+            user_memberships__user=self.request.user,
+            user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
+        ).exclude(admin_user=self.request.user)
+
+        context["groups_hosted"] = groups_hosted
+        context["groups_joined"] = groups_joined
+
+        return context
+
 
 class GroupCreateView(CreateView):
     form_class = GroupForm

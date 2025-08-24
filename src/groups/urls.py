@@ -55,7 +55,7 @@ urlpatterns = [
         GroupDeclineRequestView.as_view(),
         name="group_request_decline",
     ),
-    path("<int:pk>/exit", GroupExitView.as_view(), name="group_exit"),
+    path("<int:pk>/exit/", GroupExitView.as_view(), name="group_exit"),
     path("search/", GroupSearchView.as_view(), name="group_search"),
     path("search/<int:pk>/", GroupSendRequestView.as_view(), name="group_send_request"),
 ]
