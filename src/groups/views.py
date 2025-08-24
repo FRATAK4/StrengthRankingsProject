@@ -43,6 +43,7 @@ class GroupCreateView(CreateView):
 class GroupDetailView(DetailView):
     model = Group
     template_name = "groups/group_detail.html"
+    context_object_name = "group"
 
     def get_queryset(self):
         return self.request.user.group_memberships.filter(status="accepted").values_list("group", flat=True)
@@ -52,8 +53,14 @@ class GroupDetailView(DetailView):
         context["host_view"] = self.request.GET.get("host_view")
 
 class GroupUpdateView(UpdateView):
-    pass
+    form_class = GroupForm
+    template_name = "groups/group_edit.html"
 
+    def get_queryset(self):
+        return self.request.user.group_memberships.filter(status="accepted").values_list("group", flat=True)
+
+    def get_success_url(self):
+        return reverse("group_detail", kwargs={"pk": self.object.pk})
 
 class GroupDeleteView(DeleteView):
     pass
