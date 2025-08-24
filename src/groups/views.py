@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.generic import (
     View,
@@ -11,6 +11,7 @@ from django.views.generic import (
 
 from .forms import GroupForm
 from .models import Group, GroupMembership
+from django.contrib.auth.models import User
 
 
 class GroupDashboardView(View):
@@ -51,6 +52,7 @@ class GroupDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context["host_view"] = self.request.GET.get("host_view")
+        return context
 
 class GroupUpdateView(UpdateView):
     form_class = GroupForm
@@ -98,7 +100,18 @@ class GroupRankingsView(ListView):
 
 
 class GroupUserListView(ListView):
-    pass
+    model = User
+    template_name = "groups/group_user_list.html"
+
+    def get_queryset(self):
+        group_pk = self.kwargs.get("pk")
+        group = get_object_or_404(Group, pk=group_pk)
+        return group.user_memberships.filter(status="accepted").values_list("user", flat=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context["host_view"] = self.request.GET.get("host_view")
+        return context
 
 
 class GroupExitView(DeleteView):
