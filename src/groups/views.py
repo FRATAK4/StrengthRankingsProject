@@ -10,13 +10,15 @@ from django.views.generic import (
 )
 
 from .forms import GroupForm
-from .models import Group
+from .models import Group, GroupMembership
 
 
 class GroupDashboardView(View):
     def get(self):
         groups_hosted = self.request.user.groups_hosted.all()
-        groups_joined = self.request.user.group_memberships.values_list("group", flat=True)
+        groups_memberships = self.request.user.group_memberships.all()
+        groups_joined = groups_memberships.exclude(group__in=groups_hosted).values_list("group", flat=True)
+        groups_joined = groups_joined.filter(status="accepted")
         context = {
             "groups_hosted": groups_hosted,
             "groups_joined": groups_joined,
@@ -34,11 +36,20 @@ class GroupCreateView(CreateView):
         group = form.save(commit=False)
         group.admin_user = self.request.user
         group.save()
+        membership = GroupMembership(status="accepted", user=self.request.user, group=group)
+        membership.save()
         return super().form_valid(form)
 
 class GroupDetailView(DetailView):
-    pass
+    model = Group
+    template_name = "groups/group_detail.html"
 
+    def get_queryset(self):
+        return self.request.user.group_memberships.filter(status="accepted").values_list("group", flat=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context["host_view"] = self.request.GET.get("host_view")
 
 class GroupUpdateView(UpdateView):
     pass
