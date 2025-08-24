@@ -1,6 +1,6 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import get_object_or_404
+from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     View,
     ListView,
@@ -40,7 +40,7 @@ class GroupDashboardView(LoginRequiredMixin, ListView):
         return context
 
 
-class GroupCreateView(CreateView):
+class GroupCreateView(LoginRequiredMixin, CreateView):
     form_class = GroupForm
     template_name = "groups/group_create.html"
 
@@ -48,37 +48,56 @@ class GroupCreateView(CreateView):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
-        group = form.save(commit=False)
-        group.admin_user = self.request.user
-        group.save()
-        membership = GroupMembership(status="accepted", user=self.request.user, group=group)
-        membership.save()
-        return super().form_valid(form)
+        form.instance.admin_user = self.request.user
 
-class GroupDetailView(DetailView):
+        response = super().form_valid(form)
+
+        GroupMembership.objects.create(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            user=self.request.user,
+            group=self.object
+        )
+
+        return response
+
+class GroupDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Group
     template_name = "groups/group_detail.html"
     context_object_name = "group"
 
     def get_queryset(self):
-        return self.request.user.group_memberships.filter(status="accepted").values_list("group", flat=True)
+        return Group.objects.filter(
+            user_memberships__user=self.request.user,
+            user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
+        )
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data()
-        context["host_view"] = self.request.GET.get("host_view")
+        context = super().get_context_data(**kwargs)
+        context["host_view"] = (
+            self.request.GET.get("host_view") == "true" and
+            self.request.user == self.object.admin_user
+        )
+        context["member_count"] = GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            group=self.object
+        ).count()
         return context
 
-class GroupUpdateView(UpdateView):
+class GroupUpdateView(LoginRequiredMixin, UpdateView):
+    model = Group
     form_class = GroupForm
     template_name = "groups/group_edit.html"
+    context_object_name = "group"
 
     def get_queryset(self):
-        return self.request.user.group_memberships.filter(status="accepted").values_list("group", flat=True)
+        return Group.objects.filter(
+            admin_user=self.request.user
+        )
 
     def get_success_url(self):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
-class GroupDeleteView(DeleteView):
+class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
     template_name = "groups/group_confirm_delete.html"
 
@@ -86,7 +105,7 @@ class GroupDeleteView(DeleteView):
         return self.request.user.groups_hosted.all()
 
     def get_success_url(self):
-        return reverse("group_list")
+        return reverse_lazy("group_list")
 
 
 class GroupUserKickView(View):
