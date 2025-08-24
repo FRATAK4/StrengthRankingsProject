@@ -63,7 +63,14 @@ class GroupUpdateView(UpdateView):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
 class GroupDeleteView(DeleteView):
-    pass
+    model = Group
+    template_name = "groups/group_confirm_delete.html"
+
+    def get_queryset(self):
+        return self.request.user.groups_hosted.all()
+
+    def get_success_url(self):
+        return reverse("group_list")
 
 
 class GroupUserKickView(View):
