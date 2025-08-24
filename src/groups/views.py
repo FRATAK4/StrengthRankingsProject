@@ -10,7 +10,7 @@ from django.views.generic import (
 )
 
 from .forms import GroupForm
-from .models import Group, GroupMembership
+from .models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
 
 
@@ -84,7 +84,14 @@ class GroupUserBlockView(View):
 
 
 class GroupRequestListView(ListView):
-    pass
+    model = GroupAddRequest
+    template_name = "groups/group_request_list.html"
+
+    def get_queryset(self):
+        group_pk = self.kwargs.get("pk")
+        group = get_object_or_404(Group, pk=group_pk)
+        return group.user_add_requests.filter(status="pending")
+
 
 
 class GroupAcceptRequestView(View):
