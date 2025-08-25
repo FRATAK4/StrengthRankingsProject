@@ -1,10 +1,279 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Members - {{ group.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'group_detail' pk=group.pk %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to {{ group.name }}
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>My Groups</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-title">Group Members</h1>
+        <p class="text-secondary lead">{{ group.name }}</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <span class="badge bg-secondary">
+            <i class="fas fa-users me-1"></i>
+            {{ members|length|add:1 }} total member{{ members|length|add:1|pluralize }}
+          </span>
+          {% if host_view %}
+          <span class="badge bg-warning">
+            <i class="fas fa-user-cog me-1"></i>Admin Mode
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <!-- View Toggle for Admin -->
+        {% if is_admin %}
+          {% if not host_view %}
+            <a href="?host_view=true" class="btn btn-primary">
+              <i class="fas fa-user-cog me-2"></i>Manage Members
+            </a>
+          {% else %}
+            <a href="{% url 'group_user_list' pk=group.pk %}" class="btn btn-outline-secondary">
+              <i class="fas fa-eye me-2"></i>Normal View
+            </a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Alert -->
+  {% if host_view %}
+  <div class="alert alert-warning mb-4" style="background: rgba(255,210,63,0.1); border: 1px solid rgba(255,210,63,0.3);">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Admin Mode:</strong> You can kick or block members from this view. Use these powers responsibly.
+  </div>
+  {% endif %}
+
+  <div class="divider"></div>
+
+  <!-- Admin Card (Always First) -->
+  <section class="section mb-4">
+    <div class="section-header">
+      <h3>Group Admin</h3>
+    </div>
+    
+    <div class="card profile-card" style="border: 2px solid var(--brand-primary);">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <img src="{{ admin.profile.image.url }}" 
+                 alt="{{ admin.username }}" 
+                 class="rounded-circle" 
+                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary);">
+          </div>
+          <div class="col">
+            <div class="d-flex align-items-center mb-2">
+              <h4 class="mb-0 me-3">{{ admin.username }}</h4>
+              <span class="badge bg-primary">
+                <i class="fas fa-crown me-1"></i>Admin
+              </span>
+            </div>
+            <p class="text-secondary mb-2">
+              {{ admin.first_name }} {{ admin.last_name }}
+            </p>
+            <div class="text-muted small">
+              <i class="fas fa-user-shield me-1"></i>Group Creator
+              <span class="ms-3">
+                <i class="fas fa-calendar me-1"></i>Member since group creation
+              </span>
+            </div>
+          </div>
+          <div class="col-auto">
+            {% if admin == user %}
+              <span class="badge bg-success">
+                <i class="fas fa-user me-1"></i>You
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Members Section -->
+  <section class="section">
+    <div class="section-header">
+      <h3>Members</h3>
+    </div>
+
+    {% if members %}
+      <div class="row g-3">
+        {% for member in members %}
+        <div class="col-12">
+          <div class="card profile-card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <img src="{{ member.profile.image.url }}" 
+                       alt="{{ member.username }}" 
+                       class="rounded-circle" 
+                       style="width: 60px; height: 60px; object-fit: cover;">
+                </div>
+                <div class="col">
+                  <h5 class="mb-1">{{ member.username }}</h5>
+                  <p class="text-secondary mb-1">
+                    {{ member.first_name }} {{ member.last_name }}
+                  </p>
+                  <div class="text-muted small">
+                    <i class="fas fa-calendar-check me-1"></i>
+                    Member since {{ member.group_memberships.first.started_at|date:"M d, Y" }}
+                    {% if member == user %}
+                      <span class="ms-2 badge bg-success">You</span>
+                    {% endif %}
+                  </div>
+                </div>
+                
+                <!-- Member Actions (Admin Mode Only) -->
+                {% if host_view and member != user %}
+                <div class="col-auto">
+                  <div class="btn-group" role="group">
+                    <form method="post" 
+                          action="{% url 'group_user_kick' pk=group.pk user_pk=member.pk %}"
+                          onsubmit="return confirm('Remove {{ member.username }} from the group?');"
+                          class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-warning btn-sm" title="Kick Member">
+                        <i class="fas fa-user-times"></i> Kick
+                      </button>
+                    </form>
+                    
+                    <form method="post" 
+                          action="{% url 'group_user_block' pk=group.pk user_pk=member.pk %}"
+                          onsubmit="return confirm('Block {{ member.username }}? They won\'t be able to rejoin without your approval.');"
+                          class="d-inline ms-2">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger btn-sm" title="Block Member">
+                        <i class="fas fa-ban"></i> Block
+                      </button>
+                    </form>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- View Profile (Normal Mode) -->
+                {% if not host_view %}
+                <div class="col-auto">
+                  <a href="#" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-chart-line me-1"></i>View Stats
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- Empty State (No members besides admin) -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-user-friends text-muted" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="mb-3">No Members Yet</h4>
+        <p class="text-secondary mb-4">
+          The admin is the only member. Invite people to join your group!
+        </p>
+        {% if is_admin %}
+        <a href="{% url 'group_request_list' pk=group.pk %}" class="btn btn-primary">
+          <i class="fas fa-user-plus me-2"></i>Check Join Requests
+        </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Stats Summary -->
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="row g-4 text-center">
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-users text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ members|length|add:1 }}</h4>
+        <p class="text-secondary small">Total Members</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-crown text-gradient"></i>
+        </div>
+        <h4 class="mb-1">1</h4>
+        <p class="text-secondary small">Admin</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-user-check text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ members|length }}</h4>
+        <p class="text-secondary small">Regular Members</p>
+      </div>
+
+      <div class="col-md-3 col-6">
+        <div class="icon mb-2">
+          <i class="fas fa-chart-line text-gradient"></i>
+        </div>
+        <h4 class="mb-1">Active</h4>
+        <p class="text-secondary small">Group Status</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <div class="mt-4 text-center">
+    <a href="{% url 'group_detail' pk=group.pk %}" class="btn btn-outline-secondary me-2">
+      <i class="fas fa-arrow-left me-1"></i>Back to Group
+    </a>
+    <a href="{% url 'group_rankings' pk=group.pk %}" class="btn btn-outline-accent">
+      <i class="fas fa-trophy me-1"></i>View Rankings
+    </a>
+  </div>
+</div>
+{% endblock %}
