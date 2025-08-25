@@ -120,7 +120,7 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
         return self.request.user.groups_hosted.all()
 
     def get_success_url(self):
-        return reverse_lazy("group_list")
+        return reverse_lazy("group_dashboard")
 
 
 class GroupUserKickView(LoginRequiredMixin, View):
@@ -274,7 +274,7 @@ class GroupExitView(LoginRequiredMixin, View):
         membership = get_object_or_404(GroupMembership, user=request.user, group=group)
         membership.delete()
 
-        return redirect("group_list")
+        return redirect("group_dashboard")
 
 class GroupSearchView(LoginRequiredMixin, ListView):
     model = Group

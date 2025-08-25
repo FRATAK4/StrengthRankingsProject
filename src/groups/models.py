@@ -6,6 +6,7 @@ class Group(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
     image = models.ImageField(default="group_pics/default.jpg", upload_to="group_pics")
+    created_at = models.DateTimeField(auto_now_add=True)
     admin_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="groups_hosted"
     )
