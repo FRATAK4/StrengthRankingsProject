@@ -1,5 +1,4 @@
 import datetime
-from datetime import timezone
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
@@ -127,7 +126,7 @@ class GroupUserKickView(LoginRequiredMixin, View):
 
         return redirect("group_user_list", pk=pk)
 
-class GroupUserBlockView(View):
+class GroupUserBlockView(LoginRequiredMixin, View):
     def post(self, request, pk, user_pk):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
@@ -183,11 +182,12 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
 
         membership, created = GroupMembership.objects.get_or_create(
             user=join_request.user,
-            group=group
+            group=group,
+            defaults={'status': GroupMembership.MembershipStatus.ACCEPTED}
         )
-
-        membership.status=GroupMembership.MembershipStatus.ACCEPTED
-        membership.save()
+        if not created:
+            membership.status = GroupMembership.MembershipStatus.ACCEPTED
+            membership.save()
 
         return redirect("group_request_list", pk=pk)
 
@@ -288,6 +288,7 @@ class GroupSendRequestView(LoginRequiredMixin, CreateView):
     template_name = "groups/group_send_request.html"
 
     def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
         self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
 
     def get_success_url(self):
