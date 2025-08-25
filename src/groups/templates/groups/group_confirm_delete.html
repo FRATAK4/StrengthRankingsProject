@@ -1,10 +1,221 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Delete {{ group.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'group_detail' pk=group.pk %}?host_view=true">
+            <i class="fas fa-arrow-left me-1"></i>Back to {{ group.name }}
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>My Groups</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="section">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <!-- Warning Icon -->
+        <div class="text-center mb-4">
+          <div class="icon mb-3" style="width: 100px; height: 100px; margin: 0 auto; background: rgba(239, 68, 68, 0.1);">
+            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem !important; line-height: 100px;"></i>
+          </div>
+          <h1 class="display-title text-danger">Delete Group?</h1>
+        </div>
+
+        <!-- Deletion Warning Card -->
+        <div class="card profile-card mb-4" style="border: 2px solid rgba(239, 68, 68, 0.3);">
+          <div class="card-body p-4">
+            <h5 class="mb-3">You are about to delete:</h5>
+
+            <!-- Group Details -->
+            <div class="p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.05);">
+              <div class="d-flex align-items-center mb-3">
+                {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
+                  <img src="{{ group.image.url }}" 
+                       alt="{{ group.name }}" 
+                       class="rounded-circle me-3" 
+                       style="width: 60px; height: 60px; object-fit: cover;">
+                {% else %}
+                  <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                       style="width: 60px; height: 60px; background: var(--gradient-primary);">
+                    <i class="fas fa-users" style="color: var(--bg-primary);"></i>
+                  </div>
+                {% endif %}
+                <div>
+                  <h4 class="text-primary mb-1">{{ group.name }}</h4>
+                  <p class="text-secondary mb-0">{{ group.description|truncatechars:100 }}</p>
+                </div>
+              </div>
+
+              <!-- Group Statistics -->
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">{{ group.user_memberships.count }}</div>
+                  <small class="text-secondary">Member{{ group.user_memberships.count|pluralize }}</small>
+                </div>
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">{{ group.user_add_requests.count }}</div>
+                  <small class="text-secondary">Request{{ group.user_add_requests.count|pluralize }}</small>
+                </div>
+                <div class="col-4">
+                  <div class="text-gradient fw-bold">Active</div>
+                  <small class="text-secondary">Status</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warning Message -->
+            <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+              <h6 class="alert-heading mb-2">
+                <i class="fas fa-exclamation-circle me-2"></i>This action cannot be undone!
+              </h6>
+              <p class="mb-2">Deleting this group will permanently remove:</p>
+              <ul class="mb-0 small">
+                <li>The group and all its information</li>
+                <li>All {{ group.user_memberships.count }} member associations</li>
+                <li>All pending join requests</li>
+                <li>All rankings and competition data</li>
+                <li>All group activity history</li>
+              </ul>
+            </div>
+
+            <!-- Impact on Members -->
+            {% if group.user_memberships.count > 1 %}
+            <div class="alert alert-warning mb-4" style="background: rgba(255,210,63,0.1); border: 1px solid rgba(255,210,63,0.3);">
+              <h6 class="alert-heading mb-2">
+                <i class="fas fa-users me-2"></i>Impact on Members
+              </h6>
+              <p class="small mb-0">
+                <strong>{{ group.user_memberships.count|add:"-1" }} member{{ group.user_memberships.count|add:"-1"|pluralize }}</strong> 
+                (excluding you) will lose access to this group. Consider notifying them before deletion or 
+                transferring ownership to another member.
+              </p>
+            </div>
+            {% endif %}
+
+            <!-- Confirmation Form -->
+            <form method="post" action="{% url 'group_delete' pk=group.pk %}">
+              {% csrf_token %}
+
+              <!-- Type Group Name Confirmation -->
+              <div class="mb-4">
+                <label for="confirmName" class="form-label text-danger">
+                  <strong>Type the group name to confirm:</strong>
+                </label>
+                <input type="text" 
+                       class="form-control" 
+                       id="confirmName" 
+                       placeholder="Enter '{{ group.name }}' to confirm"
+                       data-confirm-text="{{ group.name }}"
+                       autocomplete="off">
+                <small class="text-muted">This helps prevent accidental deletions</small>
+              </div>
+
+              <!-- Confirmation Checkbox -->
+              <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="confirmDelete" disabled>
+                <label class="form-check-label" for="confirmDelete">
+                  I understand this will permanently delete <strong>{{ group.name }}</strong> and all associated data
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <!-- Action Buttons -->
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                  <i class="fas fa-trash me-2"></i>Yes, Delete Group Permanently
+                </button>
+                <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-2"></i>Cancel, Keep Group
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Alternative Actions -->
+        <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+          <div class="card-body">
+            <h6 class="text-gradient mb-3">
+              <i class="fas fa-lightbulb me-2"></i>Consider These Alternatives
+            </h6>
+            <ul class="small text-secondary mb-0">
+              <li>
+                <strong>Transfer ownership:</strong> Hand over admin rights to a trusted member
+              </li>
+              <li>
+                <strong>Make it inactive:</strong> Pause the group without deleting (coming soon)
+              </li>
+              <li>
+                <strong>Archive the group:</strong> Keep the data but close to new members (coming soon)
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% block extra_js %}
+<script>
+// Enable delete button only when group name is typed correctly and checkbox is checked
+document.addEventListener('DOMContentLoaded', function() {
+  const nameInput = document.getElementById('confirmName');
+  const checkbox = document.getElementById('confirmDelete');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const confirmText = nameInput.dataset.confirmText;
+
+  function checkEnableDelete() {
+    // Enable checkbox only if name matches
+    if (nameInput.value === confirmText) {
+      checkbox.disabled = false;
+    } else {
+      checkbox.disabled = true;
+      checkbox.checked = false;
+    }
+    
+    // Enable delete button only if both conditions are met
+    deleteBtn.disabled = !(nameInput.value === confirmText && checkbox.checked);
+  }
+
+  nameInput.addEventListener('input', checkEnableDelete);
+  checkbox.addEventListener('change', checkEnableDelete);
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,10 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Discover Groups{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'group_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>My Groups
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">Discover Groups</h1>
+    <p class="lead">Find your fitness community and join the competition</p>
+  </section>
+
+  <!-- Search Bar -->
+  <section class="mb-5">
+    <form method="get" action="{% url 'group_search' %}" class="row g-3 justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text" style="background: var(--surface); border-color: var(--brand-primary);">
+            <i class="fas fa-search text-gradient"></i>
+          </span>
+          <input type="text" 
+                 name="q" 
+                 class="form-control" 
+                 placeholder="Search groups by name or description..." 
+                 value="{{ search_query }}"
+                 style="background: var(--surface); border-color: var(--brand-primary);">
+          <button type="submit" class="btn btn-primary">
+            Search
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Filter Tags (Future Feature) -->
+    <div class="text-center mt-3">
+      <span class="text-secondary small">Popular searches:</span>
+      <div class="d-inline-flex gap-2 ms-2">
+        <span class="badge bg-secondary">Powerlifting</span>
+        <span class="badge bg-secondary">CrossFit</span>
+        <span class="badge bg-secondary">Local Gym</span>
+        <span class="badge bg-secondary">Beginners</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Groups List -->
+  <section class="section">
+    {% if groups %}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Available Groups</h3>
+        <span class="text-secondary">
+          Showing {{ groups|length }} group{{ groups|length|pluralize }}
+        </span>
+      </div>
+
+      <div class="row g-4">
+        {% for group in groups %}
+        <div class="col-12">
+          <div class="card dashboard-card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Group Info -->
+                <div class="col-lg-8">
+                  <div class="d-flex align-items-start">
+                    {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
+                      <img src="{{ group.image.url }}" 
+                           alt="{{ group.name }}" 
+                           class="rounded-circle me-3" 
+                           style="width: 60px; height: 60px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                           style="width: 60px; height: 60px; background: var(--gradient-primary);">
+                        <i class="fas fa-users" style="font-size: 1.5rem; color: var(--bg-primary);"></i>
+                      </div>
+                    {% endif %}
+                    
+                    <div class="flex-grow-1">
+                      <h4 class="mb-2">{{ group.name }}</h4>
+                      <p class="text-secondary mb-2">
+                        {{ group.description|truncatechars:150 }}
+                      </p>
+                      
+                      <!-- Group Stats -->
+                      <div class="d-flex gap-3 flex-wrap">
+                        <span class="text-muted small">
+                          <i class="fas fa-user-shield me-1"></i>
+                          Admin: {{ group.admin_user.username }}
+                        </span>
+                        <span class="text-muted small">
+                          <i class="fas fa-users me-1"></i>
+                          {{ group.member_count|default:"0" }} member{{ group.member_count|pluralize }}
+                        </span>
+                        <span class="text-muted small">
+                          <i class="fas fa-calendar me-1"></i>
+                          Created {{ group.created_at|timesince }} ago
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                  <!-- Status-based actions (placeholder - will be dynamic with annotated queryset) -->
+                  {% if group.admin_user == user %}
+                    <!-- User is Admin -->
+                    <div>
+                      <span class="badge bg-primary mb-2">
+                        <i class="fas fa-crown me-1"></i>You're Admin
+                      </span>
+                      <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-primary d-block">
+                        <i class="fas fa-cog me-2"></i>Manage
+                      </a>
+                    </div>
+                  
+                  {% elif group.is_member %}
+                    <!-- User is Member (placeholder - needs annotation) -->
+                    <div>
+                      <span class="badge bg-success mb-2">
+                        <i class="fas fa-check-circle me-1"></i>Member
+                      </span>
+                      <a href="{% url 'group_detail' pk=group.pk %}" class="btn btn-success d-block">
+                        <i class="fas fa-eye me-2"></i>View Group
+                      </a>
+                    </div>
+                  
+                  {% elif group.has_pending_request %}
+                    <!-- User has Pending Request (placeholder - needs annotation) -->
+                    <div>
+                      <span class="badge bg-info mb-2">
+                        <i class="fas fa-clock me-1"></i>Request Pending
+                      </span>
+                      <button class="btn btn-secondary d-block" disabled>
+                        <i class="fas fa-hourglass-half me-2"></i>Waiting...
+                      </button>
+                    </div>
+                  
+                  {% elif group.is_blocked %}
+                    <!-- User is Blocked (placeholder - needs annotation) -->
+                    <div>
+                      <span class="badge bg-danger mb-2">
+                        <i class="fas fa-ban me-1"></i>Blocked
+                      </span>
+                      <button class="btn btn-secondary d-block" disabled>
+                        Cannot Join
+                      </button>
+                    </div>
+                  
+                  {% elif group.was_kicked %}
+                    <!-- User was Kicked (placeholder - needs annotation) -->
+                    <div>
+                      <span class="badge bg-warning mb-2">
+                        <i class="fas fa-user-times me-1"></i>Previously Removed
+                      </span>
+                      <a href="{% url 'group_send_request' pk=group.pk %}" class="btn btn-warning d-block">
+                        <i class="fas fa-redo me-2"></i>Request Rejoin
+                      </a>
+                    </div>
+                  
+                  {% else %}
+                    <!-- User can Join -->
+                    <a href="{% url 'group_send_request' pk=group.pk %}" class="btn btn-primary d-block">
+                      <i class="fas fa-plus-circle me-2"></i>Join Group
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+          
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+          
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_obj.next_page_number }}">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-search text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        {% if search_query %}
+          <h3 class="mb-3">No Groups Found</h3>
+          <p class="text-secondary mb-4">
+            No groups match your search for "{{ search_query }}". Try different keywords or browse all groups.
+          </p>
+          <a href="{% url 'group_search' %}" class="btn btn-primary">
+            <i class="fas fa-list me-2"></i>View All Groups
+          </a>
+        {% else %}
+          <h3 class="mb-3">No Groups Available</h3>
+          <p class="text-secondary mb-4">
+            There are no public groups at the moment. Be the first to create one!
+          </p>
+          <a href="{% url 'group_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Create First Group
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Create Group CTA -->
+  {% if groups %}
+  <div class="divider"></div>
+  
+  <section class="section mt-5 text-center">
+    <div class="card mx-auto" style="max-width: 600px; background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+      <div class="card-body">
+        <h5 class="text-gradient mb-3">
+          <i class="fas fa-lightbulb me-2"></i>Can't Find What You're Looking For?
+        </h5>
+        <p class="text-secondary mb-3">
+          Create your own group and build the perfect fitness community for your goals.
+        </p>
+        <a href="{% url 'group_create' %}" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i>Create New Group
+        </a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

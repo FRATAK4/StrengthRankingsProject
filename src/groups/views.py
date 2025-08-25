@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -74,7 +74,7 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "group"
 
     def get_queryset(self):
-        return Group.objects.filter(
+        return self.model.objects.filter(
             user_memberships__user=self.request.user,
             user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
         ).annotate(
@@ -105,7 +105,7 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
     context_object_name = "group"
 
     def get_queryset(self):
-        return Group.objects.filter(
+        return self.model.objects.filter(
             admin_user=self.request.user
         )
 
@@ -172,8 +172,8 @@ class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user == self.group.admin_user
 
     def get_queryset(self):
-        return GroupAddRequest.objects.filter(
-            status=GroupAddRequest.RequestStatus.PENDING,
+        return self.model.objects.filter(
+            status=self.model.RequestStatus.PENDING,
             group=self.group
         ).select_related("user__profile")
 
@@ -246,7 +246,7 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         ).exists()
 
     def get_queryset(self):
-        return User.objects.filter(
+        return self.model.objects.filter(
             group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
             group_memberships__group=self.group
         ).exclude(id=self.group.admin_user.id).select_related("profile")
@@ -283,15 +283,23 @@ class GroupSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Group.objects.all()
+        return self.model.objects.all()
 
 class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = GroupAddRequestForm
+    model = GroupAddRequest
     template_name = "groups/group_send_request.html"
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['group'] = self.group
+
+        return context
 
     def get_success_url(self):
         return reverse_lazy("group_search")

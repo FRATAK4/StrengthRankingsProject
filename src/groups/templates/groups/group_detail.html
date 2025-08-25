@@ -1,10 +1,310 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'group_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>My Groups
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Group Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <!-- Group Image and Title -->
+        <div class="d-flex align-items-center mb-3">
+          {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
+            <img src="{{ group.image.url }}" alt="{{ group.name }}" 
+                 class="rounded-circle me-3" 
+                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary);">
+          {% else %}
+            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                 style="width: 80px; height: 80px; background: var(--gradient-primary);">
+              <i class="fas fa-users" style="font-size: 2rem; color: var(--bg-primary);"></i>
+            </div>
+          {% endif %}
+          <div>
+            <h1 class="display-title mb-1">{{ group.name }}</h1>
+            <p class="text-secondary mb-0">
+              <i class="fas fa-user-shield me-1"></i>
+              Admin: {{ group.admin_user.username }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Group Description -->
+        <p class="lead text-secondary">{{ group.description }}</p>
+
+        <!-- Group Stats -->
+        <div class="d-flex gap-3 flex-wrap">
+          <span class="badge bg-secondary">
+            <i class="fas fa-users me-1"></i>{{ group.member_count }} member{{ group.member_count|pluralize }}
+          </span>
+          {% if is_admin and group.pending_requests > 0 %}
+          <span class="badge bg-warning">
+            <i class="fas fa-user-clock me-1"></i>{{ group.pending_requests }} pending request{{ group.pending_requests|pluralize }}
+          </span>
+          {% endif %}
+          <span class="badge bg-info">
+            <i class="fas fa-calendar me-1"></i>Created {{ group.created_at|timesince }} ago
+          </span>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <!-- View Toggle for Admin -->
+        {% if is_admin %}
+          {% if not host_view %}
+            <a href="?host_view=true" class="btn btn-primary mb-2">
+              <i class="fas fa-cog me-2"></i>Admin Panel
+            </a>
+          {% else %}
+            <a href="{% url 'group_detail' pk=group.pk %}" class="btn btn-outline-secondary mb-2">
+              <i class="fas fa-eye me-2"></i>Member View
+            </a>
+          {% endif %}
+        {% endif %}
+
+        <!-- Exit Group Button (for non-admins) -->
+        {% if not is_admin %}
+          <form method="post" action="{% url 'group_exit' pk=group.pk %}" 
+                onsubmit="return confirm('Are you sure you want to leave {{ group.name }}?');"
+                class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">
+              <i class="fas fa-sign-out-alt me-2"></i>Leave Group
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Main Navigation Cards (Always Visible) -->
+  <section class="section mb-5">
+    <div class="row g-4">
+      <!-- Members Card -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_user_list' pk=group.pk %}" class="text-decoration-none">
+          <div class="card dashboard-card">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <h5 class="card-title">Members</h5>
+              <p class="card-text">View all group members</p>
+              <span class="badge bg-secondary">{{ group.member_count }} total</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Rankings Card -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_rankings' pk=group.pk %}" class="text-decoration-none">
+          <div class="card dashboard-card">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <h5 class="card-title">Rankings</h5>
+              <p class="card-text">View strength rankings</p>
+              <span class="badge bg-gradient-primary">Compete</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Activity Card -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+          <div class="card-body text-center">
+            <div class="icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h5 class="card-title">Activity</h5>
+            <p class="card-text">Recent group activity</p>
+            <span class="badge bg-success">Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Controls (Only visible in host_view mode) -->
+  {% if host_view %}
+  <div class="divider"></div>
+
+  <section class="section">
+    <div class="section-header">
+      <h3>Admin Controls</h3>
+    </div>
+
+    <div class="alert alert-primary" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+      <i class="fas fa-shield-alt me-2"></i>
+      You are viewing the admin panel. These controls are only visible to you as the group administrator.
+    </div>
+
+    <div class="row g-4">
+      <!-- Join Requests -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_request_list' pk=group.pk %}" class="text-decoration-none">
+          <div class="card dashboard-card">
+            <div class="card-body text-center">
+              <div class="icon position-relative">
+                <i class="fas fa-user-plus"></i>
+                {% if group.pending_requests > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ group.pending_requests }}
+                </span>
+                {% endif %}
+              </div>
+              <h5 class="card-title">Join Requests</h5>
+              <p class="card-text">Manage member requests</p>
+              {% if group.pending_requests > 0 %}
+                <span class="badge bg-warning">{{ group.pending_requests }} pending</span>
+              {% else %}
+                <span class="badge bg-secondary">No pending</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Edit Group -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_edit' pk=group.pk %}" class="text-decoration-none">
+          <div class="card dashboard-card">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-edit"></i>
+              </div>
+              <h5 class="card-title">Edit Group</h5>
+              <p class="card-text">Update group details</p>
+              <span class="badge bg-info">Settings</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Manage Members -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="text-decoration-none">
+          <div class="card dashboard-card">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-user-cog"></i>
+              </div>
+              <h5 class="card-title">Manage Members</h5>
+              <p class="card-text">Kick or block members</p>
+              <span class="badge bg-warning">Admin</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Delete Group -->
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'group_delete' pk=group.pk %}" class="text-decoration-none">
+          <div class="card dashboard-card" style="border: 1px solid rgba(239, 68, 68, 0.3);">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-trash text-danger"></i>
+              </div>
+              <h5 class="card-title text-danger">Delete Group</h5>
+              <p class="card-text">Permanently delete group</p>
+              <span class="badge bg-danger">Danger Zone</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Quick Info Section -->
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="row">
+      <div class="col-md-6">
+        <h5 class="text-gradient mb-3">
+          <i class="fas fa-info-circle me-2"></i>Group Information
+        </h5>
+        <ul class="list-unstyled text-secondary">
+          <li class="mb-2">
+            <i class="fas fa-user-shield me-2"></i>
+            <strong>Admin:</strong> {{ group.admin_user.username }}
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-users me-2"></i>
+            <strong>Members:</strong> {{ group.member_count }}
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <strong>Created:</strong> {{ group.created_at|date:"F j, Y" }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-6">
+        <h5 class="text-gradient mb-3">
+          <i class="fas fa-chart-bar me-2"></i>Group Stats
+        </h5>
+        <ul class="list-unstyled text-secondary">
+          <li class="mb-2">
+            <i class="fas fa-trophy me-2"></i>
+            <strong>Rankings:</strong> Active
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-fire me-2"></i>
+            <strong>Activity:</strong> High
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-star me-2"></i>
+            <strong>Top Exercise:</strong> Bench Press
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
