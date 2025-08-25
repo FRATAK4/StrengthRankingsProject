@@ -1,7 +1,7 @@
-import datetime
-
+from django.db import transaction
+from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q
+from django.db.models import Q, Count, F
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -11,6 +11,7 @@ from django.views.generic import (
     DetailView,
     UpdateView,
     DeleteView,
+    TemplateView
 )
 
 from .forms import GroupForm, GroupAddRequestForm
@@ -18,24 +19,27 @@ from .models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
 
 
-class GroupListView(LoginRequiredMixin, ListView):
-    model = Group
-    template_name = "groups/group_list.html"
-    context_object_name = "groups"
+class GroupDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = "groups/group_dashboard.html"
 
-    def get_queryset(self):
-        return Group.objects.none()
-
-    def get_context_data(
-        self, *, object_list = ..., **kwargs
-    ):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data()
 
-        groups_hosted = self.request.user.groups_hosted.all()
+        groups_hosted = self.request.user.groups_hosted.all().annotate(
+            member_count=Count(
+                "user_memberships",
+                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
+            )
+        )
         groups_joined = Group.objects.filter(
             user_memberships__user=self.request.user,
             user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
-        ).exclude(admin_user=self.request.user)
+        ).exclude(admin_user=self.request.user).annotate(
+            member_count=Count(
+                "user_memberships",
+                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
+            )
+        )
 
         context["groups_hosted"] = groups_hosted
         context["groups_joined"] = groups_joined
@@ -50,6 +54,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
+    @transaction.atomic
     def form_valid(self, form):
         form.instance.admin_user = self.request.user
 
@@ -72,18 +77,25 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
         return Group.objects.filter(
             user_memberships__user=self.request.user,
             user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
-        )
+        ).annotate(
+            member_count=Count(
+                "user_memberships",
+                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
+            ),
+            pending_requests=Count(
+                "user_add_requests",
+                filter=Q(user_add_requests__status=GroupAddRequest.RequestStatus.PENDING)
+            )
+        ).select_related("admin_user__profile")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["host_view"] = (
-            self.request.GET.get("host_view") == "true" and
-            self.request.user == self.object.admin_user
-        )
-        context["member_count"] = GroupMembership.objects.filter(
-            status=GroupMembership.MembershipStatus.ACCEPTED,
-            group=self.object
-        ).count()
+
+        is_admin = self.request.user == self.object.admin_user
+
+        context["is_admin"] = is_admin
+        context["host_view"] = self.request.GET.get("host_view") == "true" and is_admin
+
         return context
 
 class GroupUpdateView(LoginRequiredMixin, UpdateView):
@@ -116,12 +128,17 @@ class GroupUserKickView(LoginRequiredMixin, View):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
 
-        if request.user != group.admin_user:
+        if request.user != group.admin_user or request.user == user:
             return redirect("group_detail", pk=pk)
 
-        membership = get_object_or_404(GroupMembership, user=user, group=group)
+        membership = get_object_or_404(
+            GroupMembership,
+            user=user,
+            group=group,
+            status=GroupMembership.MembershipStatus.ACCEPTED
+        )
         membership.status = GroupMembership.MembershipStatus.KICKED
-        membership.kicked_at = datetime.datetime.now()
+        membership.kicked_at = timezone.now()
         membership.save()
 
         return redirect("group_user_list", pk=pk)
@@ -131,12 +148,12 @@ class GroupUserBlockView(LoginRequiredMixin, View):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
 
-        if request.user != group.admin_user:
+        if request.user != group.admin_user or request.user == user:
             return redirect("group_detail", pk=pk)
 
         membership = get_object_or_404(GroupMembership, user=user, group=group)
         membership.status = GroupMembership.MembershipStatus.BLOCKED
-        membership.blocked_at = datetime.datetime.now()
+        membership.blocked_at = timezone.now()
         membership.save()
 
         return redirect("group_user_list", pk=pk)
@@ -158,14 +175,11 @@ class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return GroupAddRequest.objects.filter(
             status=GroupAddRequest.RequestStatus.PENDING,
             group=self.group
-        ).select_related("user")
+        ).select_related("user__profile")
 
-    def get_context_data(
-        self, *, object_list = ..., **kwargs
-    ):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["group"] = self.group
-        context["request_count"] = context["requests"].count()
         return context
 
 
@@ -187,6 +201,8 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
         )
         if not created:
             membership.status = GroupMembership.MembershipStatus.ACCEPTED
+            membership.kicked_at = None
+            membership.blocked_at = None
             membership.save()
 
         return redirect("group_request_list", pk=pk)
@@ -233,7 +249,7 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return User.objects.filter(
             group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
             group_memberships__group=self.group
-        ).exclude(id=self.group.admin_user.id)
+        ).exclude(id=self.group.admin_user.id).select_related("profile")
 
     def get_context_data(
         self, *, object_list = ..., **kwargs
@@ -241,6 +257,7 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["group"] = self.group
         context["admin"] = self.group.admin_user
+        context["is_admin"] = self.request.user == self.group.admin_user
         context["host_view"] = (
             self.request.GET.get("host_view") == "true" and
             self.request.user == context["admin"]
@@ -266,24 +283,9 @@ class GroupSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Group.objects.all().exclude(
-            Q(
-                user_memberships__user=self.request.user,
-                user_memberships__status__in=[
-                    GroupMembership.MembershipStatus.ACCEPTED,
-                    GroupMembership.MembershipStatus.BLOCKED
-                ]
-            ) |
-            Q(
-                user_add_requests__user=self.request.user,
-                user_add_requests__status=GroupAddRequest.RequestStatus.PENDING
-            ) |
-            Q(
-                admin_user=self.request.user
-            )
-        )
+        return Group.objects.all()
 
-class GroupSendRequestView(LoginRequiredMixin, CreateView):
+class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = GroupAddRequestForm
     template_name = "groups/group_send_request.html"
 
@@ -293,6 +295,13 @@ class GroupSendRequestView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy("group_search")
+
+    def test_func(self):
+        return not GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.BLOCKED,
+            user=self.request.user,
+            group=self.group
+        ).exists()
 
     def form_valid(self, form):
         form.instance.status = GroupAddRequest.RequestStatus.PENDING

@@ -40,8 +40,8 @@ class GroupMembership(models.Model):
 
     status = models.CharField(max_length=30, choices=MembershipStatus.choices)
     started_at = models.DateTimeField(auto_now_add=True)
-    kicked_at = models.DateTimeField()
-    blocked_at = models.DateTimeField()
+    kicked_at = models.DateTimeField(null=True)
+    blocked_at = models.DateTimeField(null=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="group_memberships"
     )

@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}My Groups{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'common-home' %}">
+            <i class="fas fa-home me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">My Groups</h1>
+    <p class="lead">Connect, compete, and climb the rankings together</p>
+  </section>
+
+  <!-- Action Buttons -->
+  <div class="d-flex gap-3 justify-content-center mb-5">
+    <a href="{% url 'group_create' %}" class="btn btn-primary btn-lg">
+      <i class="fas fa-plus-circle me-2"></i>Create Group
+    </a>
+    <a href="{% url 'group_search' %}" class="btn btn-outline-accent btn-lg">
+      <i class="fas fa-search me-2"></i>Discover Groups
+    </a>
+  </div>
+
+  <!-- Groups I Host Section -->
+  {% if groups_hosted %}
+  <section class="section mb-5">
+    <div class="section-header">
+      <h3>Groups I Manage</h3>
+    </div>
+    <div class="row g-4">
+      {% for group in groups_hosted %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-body d-flex flex-column">
+            <!-- Group Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="icon">
+                <i class="fas fa-crown text-gradient"></i>
+              </div>
+              <span class="badge bg-primary">Admin</span>
+            </div>
+
+            <!-- Group Info -->
+            <h4 class="card-title mb-2">{{ group.name|truncatechars:30 }}</h4>
+            <p class="card-text flex-grow-1">
+              {{ group.description|truncatechars:80|default:"No description" }}
+            </p>
+
+            <!-- Stats -->
+            <div class="d-flex justify-content-between text-secondary small mb-3">
+              <span>
+                <i class="fas fa-users me-1"></i>
+                {{ group.member_count }} member{{ group.member_count|pluralize }}
+              </span>
+              {% if group.pending_requests > 0 %}
+              <span class="text-warning">
+                <i class="fas fa-user-clock me-1"></i>
+                {{ group.pending_requests }} pending
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+              <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-primary">
+                <i class="fas fa-cog me-2"></i>Manage
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Groups I'm In Section -->
+  {% if groups_joined %}
+  <div class="divider"></div>
+  
+  <section class="section">
+    <div class="section-header">
+      <h3>Groups I've Joined</h3>
+    </div>
+    <div class="row g-4">
+      {% for group in groups_joined %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-body d-flex flex-column">
+            <!-- Group Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="icon">
+                <i class="fas fa-users text-gradient"></i>
+              </div>
+              <span class="badge bg-success">Member</span>
+            </div>
+
+            <!-- Group Info -->
+            <h4 class="card-title mb-2">{{ group.name|truncatechars:30 }}</h4>
+            <p class="card-text flex-grow-1">
+              {{ group.description|truncatechars:80|default:"No description" }}
+            </p>
+
+            <!-- Stats -->
+            <div class="d-flex justify-content-between text-secondary small mb-3">
+              <span>
+                <i class="fas fa-users me-1"></i>
+                {{ group.member_count }} member{{ group.member_count|pluralize }}
+              </span>
+              <span>
+                <i class="fas fa-user-shield me-1"></i>
+                {{ group.admin_user.username }}
+              </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+              <a href="{% url 'group_detail' pk=group.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-eye me-2"></i>View Group
+              </a>
+              <div class="btn-group" role="group">
+                <a href="{% url 'group_rankings' pk=group.pk %}" class="btn btn-sm btn-outline-accent">
+                  <i class="fas fa-trophy"></i> Rankings
+                </a>
+                <a href="{% url 'group_user_list' pk=group.pk %}" class="btn btn-sm btn-outline-accent">
+                  <i class="fas fa-users"></i> Members
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Empty State -->
+  {% if not groups_hosted and not groups_joined %}
+  <div class="text-center py-5">
+    <div class="mb-4">
+      <i class="fas fa-users text-gradient" style="font-size: 5rem;"></i>
+    </div>
+    <h3 class="mb-3">No Groups Yet</h3>
+    <p class="text-secondary mb-4">
+      Join the community by creating your own group or discovering existing ones
+    </p>
+    <div class="d-flex gap-3 justify-content-center">
+      <a href="{% url 'group_create' %}" class="btn btn-primary btn-lg">
+        <i class="fas fa-plus me-2"></i>Create Your First Group
+      </a>
+      <a href="{% url 'group_search' %}" class="btn btn-outline-accent btn-lg">
+        <i class="fas fa-search me-2"></i>Browse Groups
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Quick Stats Summary -->
+  {% if groups_hosted or groups_joined %}
+  <div class="divider"></div>
+  
+  <section class="section mt-5">
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="icon mb-2">
+          <i class="fas fa-crown text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ groups_hosted|length|default:"0" }}</h4>
+        <p class="text-secondary small">Groups Managed</p>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="icon mb-2">
+          <i class="fas fa-users text-gradient"></i>
+        </div>
+        <h4 class="mb-1">{{ groups_joined|length|default:"0" }}</h4>
+        <p class="text-secondary small">Groups Joined</p>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="icon mb-2">
+          <i class="fas fa-globe text-gradient"></i>
+        </div>
+        <h4 class="mb-1">
+          {% with total_groups=groups_hosted|length|add:groups_joined|length %}
+            {{ total_groups }}
+          {% endwith %}
+        </h4>
+        <p class="text-secondary small">Total Groups</p>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
