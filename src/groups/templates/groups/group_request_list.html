@@ -1,10 +1,270 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Join Requests - {{ group.name }}{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'group_detail' pk=group.pk %}?host_view=true">
+            <i class="fas fa-arrow-left me-1"></i>Back to {{ group.name }}
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>My Groups</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-title">Join Requests</h1>
+        <p class="text-secondary lead">Manage requests for {{ group.name }}</p>
+        <div class="d-flex gap-3 flex-wrap">
+          {% if requests %}
+            <span class="badge bg-warning">
+              <i class="fas fa-user-clock me-1"></i>
+              {{ requests|length }} pending request{{ requests|length|pluralize }}
+            </span>
+          {% else %}
+            <span class="badge bg-success">
+              <i class="fas fa-check-circle me-1"></i>
+              No pending requests
+            </span>
+          {% endif %}
+          <span class="badge bg-primary">
+            <i class="fas fa-user-shield me-1"></i>
+            Admin Only
+          </span>
+        </div>
+      </div>
+      
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
+          <i class="fas fa-users me-2"></i>Manage Members
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Info -->
+  <div class="alert alert-info mb-4" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+    <h6 class="alert-heading mb-2">
+      <i class="fas fa-info-circle me-2"></i>Review Guidelines
+    </h6>
+    <ul class="small mb-0">
+      <li>Check the user's message to understand why they want to join</li>
+      <li>Consider if they align with your group's goals and values</li>
+      <li>Accepted members can participate in rankings and competitions</li>
+      <li>You can always remove members later if needed</li>
+    </ul>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Requests List -->
+  <section class="section">
+    {% if requests %}
+      <div class="row g-4">
+        {% for request in requests %}
+        <div class="col-12">
+          <div class="card profile-card">
+            <div class="card-body">
+              <div class="row">
+                <!-- User Info Column -->
+                <div class="col-lg-8">
+                  <div class="d-flex align-items-start mb-3">
+                    <img src="{{ request.user.profile.image.url }}" 
+                         alt="{{ request.user.username }}" 
+                         class="rounded-circle me-3" 
+                         style="width: 60px; height: 60px; object-fit: cover;">
+                    <div class="flex-grow-1">
+                      <h5 class="mb-1">
+                        {{ request.user.username }}
+                        {% if request.user.first_name or request.user.last_name %}
+                          <span class="text-secondary fw-normal">
+                            ({{ request.user.first_name }} {{ request.user.last_name }})
+                          </span>
+                        {% endif %}
+                      </h5>
+                      <div class="text-muted small mb-2">
+                        <i class="fas fa-clock me-1"></i>
+                        Requested {{ request.sent_at|timesince }} ago
+                      </div>
+                      
+                      <!-- User Stats -->
+                      <div class="d-flex gap-3 flex-wrap">
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-calendar-alt me-1"></i>
+                          Member since {{ request.user.date_joined|date:"Y" }}
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-weight me-1"></i>
+                          {{ request.user.profile.bodyweight }} kg
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-birthday-cake me-1"></i>
+                          {{ request.user.profile.age }} years
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Request Message -->
+                  <div class="p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.05); border-left: 3px solid var(--brand-primary);">
+                    <h6 class="text-gradient mb-2">
+                      <i class="fas fa-comment-alt me-1"></i>Message
+                    </h6>
+                    <p class="mb-0">{{ request.message|default:"No message provided" }}</p>
+                  </div>
+
+                  <!-- Previous History (if any) -->
+                  {% if request.user in kicked_users %}
+                  <div class="alert alert-warning mb-0" style="background: rgba(255,210,63,0.1); border: 1px solid rgba(255,210,63,0.3);">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> This user was previously kicked from the group.
+                  </div>
+                  {% endif %}
+                </div>
+
+                <!-- Action Buttons Column -->
+                <div class="col-lg-4">
+                  <div class="d-flex flex-column gap-2">
+                    <h6 class="text-secondary mb-2">Actions</h6>
+                    
+                    <!-- Accept Button -->
+                    <form method="post" 
+                          action="{% url 'group_request_accept' pk=group.pk request_pk=request.pk %}"
+                          onsubmit="return confirm('Accept {{ request.user.username }} into the group?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-check me-2"></i>Accept Request
+                      </button>
+                    </form>
+                    
+                    <!-- Decline Button -->
+                    <form method="post" 
+                          action="{% url 'group_request_decline' pk=group.pk request_pk=request.pk %}"
+                          onsubmit="return confirm('Decline request from {{ request.user.username }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-times me-2"></i>Decline Request
+                      </button>
+                    </form>
+
+                    <!-- View Profile -->
+                    <a href="#" class="btn btn-outline-secondary w-100">
+                      <i class="fas fa-user me-2"></i>View Profile
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Bulk Actions (if multiple requests) -->
+      {% if requests|length > 1 %}
+      <div class="divider"></div>
+      
+      <section class="section mt-4">
+        <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+          <div class="card-body">
+            <h6 class="text-gradient mb-3">
+              <i class="fas fa-tasks me-2"></i>Quick Actions
+            </h6>
+            <p class="text-secondary small mb-3">
+              You have multiple requests. Consider reviewing each one individually for the best group dynamic.
+            </p>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-success btn-sm" disabled>
+                <i class="fas fa-check-double me-1"></i>Accept All (Coming Soon)
+              </button>
+              <button class="btn btn-outline-danger btn-sm" disabled>
+                <i class="fas fa-times-circle me-1"></i>Decline All (Coming Soon)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-inbox text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="mb-3">No Pending Requests</h3>
+        <p class="text-secondary mb-4">
+          There are no join requests at this time. When users request to join your group, they'll appear here.
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+          <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Group
+          </a>
+          <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
+            <i class="fas fa-users me-2"></i>View Members
+          </a>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="mt-5">
+          <div class="card mx-auto" style="max-width: 600px; background: rgba(255,210,63,0.1); border: 1px solid rgba(255,210,63,0.3);">
+            <div class="card-body">
+              <h6 class="text-warning mb-3">
+                <i class="fas fa-lightbulb me-2"></i>Growing Your Group
+              </h6>
+              <ul class="text-secondary small mb-0 text-start">
+                <li>Share your group with friends at the gym</li>
+                <li>Make sure your group description is clear and inviting</li>
+                <li>Stay active to attract more members</li>
+                <li>Consider making your group public for better visibility</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Navigation -->
+  <div class="mt-5 text-center">
+    <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-1"></i>Back to Admin Panel
+    </a>
+  </div>
+</div>
+{% endblock %}
