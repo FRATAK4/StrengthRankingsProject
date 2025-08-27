@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Case, When, BooleanField, Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
@@ -83,17 +83,12 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return (
-            self.model.objects.filter(
+            self.model.objects.with_member_count()
+            .filter(
                 user_memberships__user=self.request.user,
                 user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
             )
             .annotate(
-                member_count=Count(
-                    "user_memberships",
-                    filter=Q(
-                        user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
-                    ),
-                ),
                 pending_requests=Count(
                     "user_add_requests",
                     filter=Q(
@@ -303,7 +298,34 @@ class GroupSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return self.model.objects.all()
+        return self.model.objects.with_member_count().annotate(
+            is_admin=Case(
+                When(admin_user=self.request.user, then=True),
+                default=False,
+                output_field=BooleanField(),
+            ),
+            is_member=Exists(
+                GroupMembership.objects.filter(
+                    status=GroupMembership.MembershipStatus.ACCEPTED,
+                    user=self.request.user,
+                    group=OuterRef("pk"),
+                )
+            ),
+            is_blocked=Exists(
+                GroupMembership.objects.filter(
+                    status=GroupMembership.MembershipStatus.BLOCKED,
+                    user=self.request.user,
+                    group=OuterRef("pk"),
+                )
+            ),
+            is_pending=Exists(
+                GroupAddRequest.objects.filter(
+                    status=GroupAddRequest.RequestStatus.PENDING,
+                    user=self.request.user,
+                    group=OuterRef("pk"),
+                )
+            ),
+        )
 
 
 class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):

@@ -62,7 +62,7 @@
           {% endif %}
         </div>
       </div>
-      
+
       <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
         <!-- View Toggle for Admin -->
         {% if is_admin %}
@@ -95,19 +95,19 @@
     <div class="section-header">
       <h3>Group Admin</h3>
     </div>
-    
+
     <div class="card profile-card" style="border: 2px solid var(--brand-primary);">
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-auto">
-            <img src="{{ admin.profile.image.url }}" 
-                 alt="{{ admin.username }}" 
-                 class="rounded-circle" 
+            <img src="{{ admin.profile.image.url }}"
+                 alt="{{ admin.username }}"
+                 class="rounded-circle"
                  style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary);">
           </div>
           <div class="col">
             <div class="d-flex align-items-center mb-2">
-              <h4 class="mb-0 me-3">{{ admin.username }}</h4>
+              <h4 class="mb-0 me-3 text-secondary">{{ admin.username }}</h4>
               <span class="badge bg-primary">
                 <i class="fas fa-crown me-1"></i>Admin
               </span>
@@ -115,7 +115,7 @@
             <p class="text-secondary mb-2">
               {{ admin.first_name }} {{ admin.last_name }}
             </p>
-            <div class="text-muted small">
+            <div class="text-secondary small">
               <i class="fas fa-user-shield me-1"></i>Group Creator
               <span class="ms-3">
                 <i class="fas fa-calendar me-1"></i>Member since group creation
@@ -148,9 +148,9 @@
             <div class="card-body">
               <div class="row align-items-center">
                 <div class="col-auto">
-                  <img src="{{ member.profile.image.url }}" 
-                       alt="{{ member.username }}" 
-                       class="rounded-circle" 
+                  <img src="{{ member.profile.image.url }}"
+                       alt="{{ member.username }}"
+                       class="rounded-circle"
                        style="width: 60px; height: 60px; object-fit: cover;">
                 </div>
                 <div class="col">
@@ -166,12 +166,12 @@
                     {% endif %}
                   </div>
                 </div>
-                
+
                 <!-- Member Actions (Admin Mode Only) -->
                 {% if host_view and member != user %}
                 <div class="col-auto">
                   <div class="btn-group" role="group">
-                    <form method="post" 
+                    <form method="post"
                           action="{% url 'group_user_kick' pk=group.pk user_pk=member.pk %}"
                           onsubmit="return confirm('Remove {{ member.username }} from the group?');"
                           class="d-inline">
@@ -180,8 +180,8 @@
                         <i class="fas fa-user-times"></i> Kick
                       </button>
                     </form>
-                    
-                    <form method="post" 
+
+                    <form method="post"
                           action="{% url 'group_user_block' pk=group.pk user_pk=member.pk %}"
                           onsubmit="return confirm('Block {{ member.username }}? They won\'t be able to rejoin without your approval.');"
                           class="d-inline ms-2">

@@ -57,10 +57,10 @@
           <span class="input-group-text" style="background: var(--surface); border-color: var(--brand-primary);">
             <i class="fas fa-search text-gradient"></i>
           </span>
-          <input type="text" 
-                 name="q" 
-                 class="form-control" 
-                 placeholder="Search groups by name or description..." 
+          <input type="text"
+                 name="q"
+                 class="form-control"
+                 placeholder="Search groups by name or description..."
                  value="{{ search_query }}"
                  style="background: var(--surface); border-color: var(--brand-primary);">
           <button type="submit" class="btn btn-primary">
@@ -104,23 +104,23 @@
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
                     {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-                      <img src="{{ group.image.url }}" 
-                           alt="{{ group.name }}" 
-                           class="rounded-circle me-3" 
+                      <img src="{{ group.image.url }}"
+                           alt="{{ group.name }}"
+                           class="rounded-circle me-3"
                            style="width: 60px; height: 60px; object-fit: cover;">
                     {% else %}
-                      <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                      <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
                            style="width: 60px; height: 60px; background: var(--gradient-primary);">
                         <i class="fas fa-users" style="font-size: 1.5rem; color: var(--bg-primary);"></i>
                       </div>
                     {% endif %}
-                    
+
                     <div class="flex-grow-1">
                       <h4 class="mb-2">{{ group.name }}</h4>
                       <p class="text-secondary mb-2">
                         {{ group.description|truncatechars:150 }}
                       </p>
-                      
+
                       <!-- Group Stats -->
                       <div class="d-flex gap-3 flex-wrap">
                         <span class="text-muted small">
@@ -142,8 +142,7 @@
 
                 <!-- Action Buttons -->
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                  <!-- Status-based actions (placeholder - will be dynamic with annotated queryset) -->
-                  {% if group.admin_user == user %}
+                  {% if group.is_admin %}
                     <!-- User is Admin -->
                     <div>
                       <span class="badge bg-primary mb-2">
@@ -153,9 +152,9 @@
                         <i class="fas fa-cog me-2"></i>Manage
                       </a>
                     </div>
-                  
+
                   {% elif group.is_member %}
-                    <!-- User is Member (placeholder - needs annotation) -->
+                    <!-- User is Member -->
                     <div>
                       <span class="badge bg-success mb-2">
                         <i class="fas fa-check-circle me-1"></i>Member
@@ -164,20 +163,9 @@
                         <i class="fas fa-eye me-2"></i>View Group
                       </a>
                     </div>
-                  
-                  {% elif group.has_pending_request %}
-                    <!-- User has Pending Request (placeholder - needs annotation) -->
-                    <div>
-                      <span class="badge bg-info mb-2">
-                        <i class="fas fa-clock me-1"></i>Request Pending
-                      </span>
-                      <button class="btn btn-secondary d-block" disabled>
-                        <i class="fas fa-hourglass-half me-2"></i>Waiting...
-                      </button>
-                    </div>
-                  
+
                   {% elif group.is_blocked %}
-                    <!-- User is Blocked (placeholder - needs annotation) -->
+                    <!-- User is Blocked -->
                     <div>
                       <span class="badge bg-danger mb-2">
                         <i class="fas fa-ban me-1"></i>Blocked
@@ -185,24 +173,35 @@
                       <button class="btn btn-secondary d-block" disabled>
                         Cannot Join
                       </button>
+                      <small class="text-danger mt-1 d-block">
+                        You've been blocked from this group
+                      </small>
                     </div>
-                  
-                  {% elif group.was_kicked %}
-                    <!-- User was Kicked (placeholder - needs annotation) -->
+
+                  {% elif group.is_pending %}
+                    <!-- User has Pending Request -->
                     <div>
-                      <span class="badge bg-warning mb-2">
-                        <i class="fas fa-user-times me-1"></i>Previously Removed
+                      <span class="badge bg-info mb-2">
+                        <i class="fas fa-clock me-1"></i>Request Pending
                       </span>
-                      <a href="{% url 'group_send_request' pk=group.pk %}" class="btn btn-warning d-block">
-                        <i class="fas fa-redo me-2"></i>Request Rejoin
-                      </a>
+                      <button class="btn btn-secondary d-block" disabled>
+                        <i class="fas fa-hourglass-half me-2"></i>Waiting for approval
+                      </button>
+                      <small class="text-info mt-1 d-block">
+                        Admin will review your request
+                      </small>
                     </div>
-                  
+
                   {% else %}
-                    <!-- User can Join -->
-                    <a href="{% url 'group_send_request' pk=group.pk %}" class="btn btn-primary d-block">
-                      <i class="fas fa-plus-circle me-2"></i>Join Group
-                    </a>
+                    <!-- User can Join (no relationship with group) -->
+                    <div>
+                      <a href="{% url 'group_send_request' pk=group.pk %}" class="btn btn-primary d-block">
+                        <i class="fas fa-plus-circle me-2"></i>Join Group
+                      </a>
+                      <small class="text-secondary mt-1 d-block">
+                        Send a request to join
+                      </small>
+                    </div>
                   {% endif %}
                 </div>
               </div>
@@ -223,7 +222,7 @@
               </a>
             </li>
           {% endif %}
-          
+
           {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
               <li class="page-item active">
@@ -235,7 +234,7 @@
               </li>
             {% endif %}
           {% endfor %}
-          
+
           {% if page_obj.has_next %}
             <li class="page-item">
               <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_obj.next_page_number }}">
@@ -277,7 +276,7 @@
   <!-- Create Group CTA -->
   {% if groups %}
   <div class="divider"></div>
-  
+
   <section class="section mt-5 text-center">
     <div class="card mx-auto" style="max-width: 600px; background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
       <div class="card-body">

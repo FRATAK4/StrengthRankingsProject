@@ -68,7 +68,7 @@
           </span>
         </div>
       </div>
-      
+
       <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
         <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
           <i class="fas fa-users me-2"></i>Manage Members
@@ -104,9 +104,9 @@
                 <!-- User Info Column -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start mb-3">
-                    <img src="{{ request.user.profile.image.url }}" 
-                         alt="{{ request.user.username }}" 
-                         class="rounded-circle me-3" 
+                    <img src="{{ request.user.profile.image.url }}"
+                         alt="{{ request.user.username }}"
+                         class="rounded-circle me-3"
                          style="width: 60px; height: 60px; object-fit: cover;">
                     <div class="flex-grow-1">
                       <h5 class="mb-1">
@@ -121,7 +121,7 @@
                         <i class="fas fa-clock me-1"></i>
                         Requested {{ request.sent_at|timesince }} ago
                       </div>
-                      
+
                       <!-- User Stats -->
                       <div class="d-flex gap-3 flex-wrap">
                         <span class="badge bg-secondary">
@@ -161,9 +161,9 @@
                 <div class="col-lg-4">
                   <div class="d-flex flex-column gap-2">
                     <h6 class="text-secondary mb-2">Actions</h6>
-                    
+
                     <!-- Accept Button -->
-                    <form method="post" 
+                    <form method="post"
                           action="{% url 'group_request_accept' pk=group.pk request_pk=request.pk %}"
                           onsubmit="return confirm('Accept {{ request.user.username }} into the group?');">
                       {% csrf_token %}
@@ -171,9 +171,9 @@
                         <i class="fas fa-check me-2"></i>Accept Request
                       </button>
                     </form>
-                    
+
                     <!-- Decline Button -->
-                    <form method="post" 
+                    <form method="post"
                           action="{% url 'group_request_decline' pk=group.pk request_pk=request.pk %}"
                           onsubmit="return confirm('Decline request from {{ request.user.username }}?');">
                       {% csrf_token %}
@@ -183,7 +183,7 @@
                     </form>
 
                     <!-- View Profile -->
-                    <a href="#" class="btn btn-outline-secondary w-100">
+                    <a href="{% url 'accounts-user_profile' username=request.user.username %}" class="btn btn-outline-secondary w-100">
                       <i class="fas fa-user me-2"></i>View Profile
                     </a>
                   </div>
@@ -198,7 +198,7 @@
       <!-- Bulk Actions (if multiple requests) -->
       {% if requests|length > 1 %}
       <div class="divider"></div>
-      
+
       <section class="section mt-4">
         <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
           <div class="card-body">
