@@ -11,7 +11,7 @@ from django.views.generic import (
     DetailView,
     UpdateView,
     DeleteView,
-    TemplateView
+    TemplateView,
 )
 
 from .forms import GroupForm, GroupAddRequestForm
@@ -25,24 +25,31 @@ class GroupDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
 
-        groups_hosted = self.request.user.groups_hosted.all().annotate(
-            member_count=Count(
-                "user_memberships",
-                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
+        groups_hosted = self.request.user.groups_hosted.with_member_count()
+
+        groups_joined = (
+            Group.objects.with_member_count()
+            .filter(
+                user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
+                user_memberships__user=self.request.user,
             )
+            .exclude(admin_user=self.request.user)
         )
-        groups_joined = Group.objects.filter(
+
+        groups_blocked = Group.objects.with_member_count().filter(
+            user_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
             user_memberships__user=self.request.user,
-            user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
-        ).exclude(admin_user=self.request.user).annotate(
-            member_count=Count(
-                "user_memberships",
-                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
-            )
+        )
+
+        groups_pending = Group.objects.with_member_count().filter(
+            user_add_requests__status=GroupAddRequest.RequestStatus.PENDING,
+            user_add_requests__user=self.request.user,
         )
 
         context["groups_hosted"] = groups_hosted
         context["groups_joined"] = groups_joined
+        context["groups_blocked"] = groups_blocked
+        context["groups_pending"] = groups_pending
 
         return context
 
@@ -63,10 +70,11 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
         GroupMembership.objects.create(
             status=GroupMembership.MembershipStatus.ACCEPTED,
             user=self.request.user,
-            group=self.object
+            group=self.object,
         )
 
         return response
+
 
 class GroupDetailView(LoginRequiredMixin, DetailView):
     model = Group
@@ -74,19 +82,27 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "group"
 
     def get_queryset(self):
-        return self.model.objects.filter(
-            user_memberships__user=self.request.user,
-            user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
-        ).annotate(
-            member_count=Count(
-                "user_memberships",
-                filter=Q(user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED)
-            ),
-            pending_requests=Count(
-                "user_add_requests",
-                filter=Q(user_add_requests__status=GroupAddRequest.RequestStatus.PENDING)
+        return (
+            self.model.objects.filter(
+                user_memberships__user=self.request.user,
+                user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
             )
-        ).select_related("admin_user__profile")
+            .annotate(
+                member_count=Count(
+                    "user_memberships",
+                    filter=Q(
+                        user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
+                    ),
+                ),
+                pending_requests=Count(
+                    "user_add_requests",
+                    filter=Q(
+                        user_add_requests__status=GroupAddRequest.RequestStatus.PENDING
+                    ),
+                ),
+            )
+            .select_related("admin_user__profile")
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,6 +114,7 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
 
         return context
 
+
 class GroupUpdateView(LoginRequiredMixin, UpdateView):
     model = Group
     form_class = GroupForm
@@ -105,12 +122,11 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
     context_object_name = "group"
 
     def get_queryset(self):
-        return self.model.objects.filter(
-            admin_user=self.request.user
-        )
+        return self.model.objects.filter(admin_user=self.request.user)
 
     def get_success_url(self):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
+
 
 class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
@@ -135,13 +151,14 @@ class GroupUserKickView(LoginRequiredMixin, View):
             GroupMembership,
             user=user,
             group=group,
-            status=GroupMembership.MembershipStatus.ACCEPTED
+            status=GroupMembership.MembershipStatus.ACCEPTED,
         )
         membership.status = GroupMembership.MembershipStatus.KICKED
         membership.kicked_at = timezone.now()
         membership.save()
 
         return redirect("group_user_list", pk=pk)
+
 
 class GroupUserBlockView(LoginRequiredMixin, View):
     def post(self, request, pk, user_pk):
@@ -173,8 +190,7 @@ class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            status=self.model.RequestStatus.PENDING,
-            group=self.group
+            status=self.model.RequestStatus.PENDING, group=self.group
         ).select_related("user__profile")
 
     def get_context_data(self, **kwargs):
@@ -197,7 +213,7 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
         membership, created = GroupMembership.objects.get_or_create(
             user=join_request.user,
             group=group,
-            defaults={'status': GroupMembership.MembershipStatus.ACCEPTED}
+            defaults={"status": GroupMembership.MembershipStatus.ACCEPTED},
         )
         if not created:
             membership.status = GroupMembership.MembershipStatus.ACCEPTED
@@ -242,27 +258,30 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return GroupMembership.objects.filter(
             status=GroupMembership.MembershipStatus.ACCEPTED,
             user=self.request.user,
-            group=self.group
+            group=self.group,
         ).exists()
 
     def get_queryset(self):
-        return self.model.objects.filter(
-            group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
-            group_memberships__group=self.group
-        ).exclude(id=self.group.admin_user.id).select_related("profile")
+        return (
+            self.model.objects.filter(
+                group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
+                group_memberships__group=self.group,
+            )
+            .exclude(id=self.group.admin_user.id)
+            .select_related("profile")
+        )
 
-    def get_context_data(
-        self, *, object_list = ..., **kwargs
-    ):
+    def get_context_data(self, *, object_list=..., **kwargs):
         context = super().get_context_data(**kwargs)
         context["group"] = self.group
         context["admin"] = self.group.admin_user
         context["is_admin"] = self.request.user == self.group.admin_user
         context["host_view"] = (
-            self.request.GET.get("host_view") == "true" and
-            self.request.user == context["admin"]
+            self.request.GET.get("host_view") == "true"
+            and self.request.user == context["admin"]
         )
         return context
+
 
 class GroupExitView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -276,6 +295,7 @@ class GroupExitView(LoginRequiredMixin, View):
 
         return redirect("group_dashboard")
 
+
 class GroupSearchView(LoginRequiredMixin, ListView):
     model = Group
     template_name = "groups/group_search.html"
@@ -284,6 +304,7 @@ class GroupSearchView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return self.model.objects.all()
+
 
 class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = GroupAddRequestForm
@@ -297,7 +318,7 @@ class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['group'] = self.group
+        context["group"] = self.group
 
         return context
 
@@ -308,7 +329,7 @@ class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return not GroupMembership.objects.filter(
             status=GroupMembership.MembershipStatus.BLOCKED,
             user=self.request.user,
-            group=self.group
+            group=self.group,
         ).exists()
 
     def form_valid(self, form):
@@ -317,8 +338,3 @@ class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         form.instance.group = self.group
 
         return super().form_valid(form)
-
-
-
-
-

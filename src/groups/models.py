@@ -1,5 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
+
+
+class GroupManager(models.Manager):
+    def with_member_count(self):
+        return self.annotate(
+            member_count=Count(
+                "user_memberships",
+                filter=Q(
+                    user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED
+                ),
+            )
+        )
 
 
 class Group(models.Model):
@@ -10,6 +23,7 @@ class Group(models.Model):
     admin_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="groups_hosted"
     )
+    objects = GroupManager()
 
 
 class GroupAddRequest(models.Model):

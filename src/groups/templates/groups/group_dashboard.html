@@ -114,7 +114,7 @@
   <!-- Groups I'm In Section -->
   {% if groups_joined %}
   <div class="divider"></div>
-  
+
   <section class="section">
     <div class="section-header">
       <h3>Groups I've Joined</h3>
@@ -172,6 +172,88 @@
   </section>
   {% endif %}
 
+  <!-- Pending Requests Section -->
+  {% if groups_pending %}
+  <div class="divider"></div>
+
+  <section class="section">
+    <div class="section-header">
+      <h3>Pending Requests</h3>
+    </div>
+    <div class="row g-4">
+      {% for group in groups_pending %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card h-100" style="border: 1px solid rgba(255,210,63,0.3);">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="icon">
+                <i class="fas fa-clock text-warning"></i>
+              </div>
+              <span class="badge bg-warning">Pending</span>
+            </div>
+
+            <h4 class="card-title mb-2">{{ group.name|truncatechars:30 }}</h4>
+            <p class="card-text flex-grow-1">
+              {{ group.description|truncatechars:80|default:"No description" }}
+            </p>
+
+            <div class="text-secondary small mb-3">
+              <i class="fas fa-hourglass-half me-1"></i>
+              Waiting for admin approval
+            </div>
+
+            <button class="btn btn-secondary" disabled>
+              <i class="fas fa-clock me-2"></i>Request Pending
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Blocked Groups Section -->
+  {% if groups_blocked %}
+  <div class="divider"></div>
+
+  <section class="section">
+    <div class="section-header">
+      <h3>Blocked Groups</h3>
+    </div>
+    <div class="row g-4">
+      {% for group in groups_blocked %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card h-100" style="border: 1px solid rgba(239,68,68,0.3);">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="icon">
+                <i class="fas fa-ban text-danger"></i>
+              </div>
+              <span class="badge bg-danger">Blocked</span>
+            </div>
+
+            <h4 class="card-title mb-2">{{ group.name|truncatechars:30 }}</h4>
+            <p class="card-text flex-grow-1">
+              {{ group.description|truncatechars:80|default:"No description" }}
+            </p>
+
+            <div class="text-secondary small mb-3">
+              <i class="fas fa-ban me-1"></i>
+              You cannot rejoin this group
+            </div>
+
+            <button class="btn btn-secondary" disabled>
+              <i class="fas fa-ban me-2"></i>Access Denied
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <!-- Empty State -->
   {% if not groups_hosted and not groups_joined %}
   <div class="text-center py-5">
@@ -196,7 +278,7 @@
   <!-- Quick Stats Summary -->
   {% if groups_hosted or groups_joined %}
   <div class="divider"></div>
-  
+
   <section class="section mt-5">
     <div class="row g-4 text-center">
       <div class="col-md-4">
@@ -206,7 +288,7 @@
         <h4 class="mb-1">{{ groups_hosted|length|default:"0" }}</h4>
         <p class="text-secondary small">Groups Managed</p>
       </div>
-      
+
       <div class="col-md-4">
         <div class="icon mb-2">
           <i class="fas fa-users text-gradient"></i>
@@ -214,7 +296,7 @@
         <h4 class="mb-1">{{ groups_joined|length|default:"0" }}</h4>
         <p class="text-secondary small">Groups Joined</p>
       </div>
-      
+
       <div class="col-md-4">
         <div class="icon mb-2">
           <i class="fas fa-globe text-gradient"></i>
