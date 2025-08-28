@@ -1,137 +1,17 @@
-from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q, Count, Case, When, BooleanField, Exists, OuterRef
+from django.db.models import Case, When, BooleanField, Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import (
     View,
     ListView,
     CreateView,
-    DetailView,
-    UpdateView,
-    DeleteView,
-    TemplateView,
 )
 
-from .forms import GroupForm, GroupAddRequestForm
-from .models import Group, GroupMembership, GroupAddRequest
+from groups.forms import GroupForm, GroupAddRequestForm
+from groups.models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
-
-
-class GroupDashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "groups/group_dashboard.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data()
-
-        groups_hosted = self.request.user.groups_hosted.with_member_count()
-
-        groups_joined = (
-            Group.objects.with_member_count()
-            .filter(
-                user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
-                user_memberships__user=self.request.user,
-            )
-            .exclude(admin_user=self.request.user)
-        )
-
-        groups_blocked = Group.objects.with_member_count().filter(
-            user_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
-            user_memberships__user=self.request.user,
-        )
-
-        groups_pending = Group.objects.with_member_count().filter(
-            user_add_requests__status=GroupAddRequest.RequestStatus.PENDING,
-            user_add_requests__user=self.request.user,
-        )
-
-        context["groups_hosted"] = groups_hosted
-        context["groups_joined"] = groups_joined
-        context["groups_blocked"] = groups_blocked
-        context["groups_pending"] = groups_pending
-
-        return context
-
-
-class GroupCreateView(LoginRequiredMixin, CreateView):
-    form_class = GroupForm
-    template_name = "groups/group_create.html"
-
-    def get_success_url(self):
-        return reverse("group_detail", kwargs={"pk": self.object.pk})
-
-    @transaction.atomic
-    def form_valid(self, form):
-        form.instance.admin_user = self.request.user
-
-        response = super().form_valid(form)
-
-        GroupMembership.objects.create(
-            status=GroupMembership.MembershipStatus.ACCEPTED,
-            user=self.request.user,
-            group=self.object,
-        )
-
-        return response
-
-
-class GroupDetailView(LoginRequiredMixin, DetailView):
-    model = Group
-    template_name = "groups/group_detail.html"
-    context_object_name = "group"
-
-    def get_queryset(self):
-        return (
-            self.model.objects.with_member_count()
-            .filter(
-                user_memberships__user=self.request.user,
-                user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
-            )
-            .annotate(
-                pending_requests=Count(
-                    "user_add_requests",
-                    filter=Q(
-                        user_add_requests__status=GroupAddRequest.RequestStatus.PENDING
-                    ),
-                ),
-            )
-            .select_related("admin_user__profile")
-        )
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        is_admin = self.request.user == self.object.admin_user
-
-        context["is_admin"] = is_admin
-        context["host_view"] = self.request.GET.get("host_view") == "true" and is_admin
-
-        return context
-
-
-class GroupUpdateView(LoginRequiredMixin, UpdateView):
-    model = Group
-    form_class = GroupForm
-    template_name = "groups/group_edit.html"
-    context_object_name = "group"
-
-    def get_queryset(self):
-        return self.model.objects.filter(admin_user=self.request.user)
-
-    def get_success_url(self):
-        return reverse("group_detail", kwargs={"pk": self.object.pk})
-
-
-class GroupDeleteView(LoginRequiredMixin, DeleteView):
-    model = Group
-    template_name = "groups/group_confirm_delete.html"
-
-    def get_queryset(self):
-        return self.request.user.groups_hosted.all()
-
-    def get_success_url(self):
-        return reverse_lazy("group_dashboard")
 
 
 class GroupUserKickView(LoginRequiredMixin, View):

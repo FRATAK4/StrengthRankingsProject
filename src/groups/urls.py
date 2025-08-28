@@ -1,11 +1,13 @@
 from django.urls import path
 
-from .views import (
+from .views.group_crud_views import (
     GroupDashboardView,
     GroupCreateView,
     GroupUpdateView,
     GroupDeleteView,
     GroupDetailView,
+)
+from .views.group_functionality_views import (
     GroupExitView,
     GroupSearchView,
     GroupSendRequestView,
