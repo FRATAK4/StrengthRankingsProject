@@ -50,11 +50,11 @@
         <!-- Group Image and Title -->
         <div class="d-flex align-items-center mb-3">
           {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-            <img src="{{ group.image.url }}" alt="{{ group.name }}" 
-                 class="rounded-circle me-3" 
+            <img src="{{ group.image.url }}" alt="{{ group.name }}"
+                 class="rounded-circle me-3"
                  style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary);">
           {% else %}
-            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
                  style="width: 80px; height: 80px; background: var(--gradient-primary);">
               <i class="fas fa-users" style="font-size: 2rem; color: var(--bg-primary);"></i>
             </div>
@@ -103,7 +103,7 @@
 
         <!-- Exit Group Button (for non-admins) -->
         {% if not is_admin %}
-          <form method="post" action="{% url 'group_exit' pk=group.pk %}" 
+          <form method="post" action="{% url 'group_exit' pk=group.pk %}"
                 onsubmit="return confirm('Are you sure you want to leave {{ group.name }}?');"
                 class="d-inline">
             {% csrf_token %}

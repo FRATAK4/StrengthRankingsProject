@@ -58,17 +58,17 @@
           <div class="card-body">
             <div class="d-flex align-items-center mb-3">
               {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-                <img src="{{ group.image.url }}" 
-                     alt="{{ group.name }}" 
-                     class="rounded-circle me-3" 
+                <img src="{{ group.image.url }}"
+                     alt="{{ group.name }}"
+                     class="rounded-circle me-3"
                      style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
               {% else %}
-                <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
                      style="width: 80px; height: 80px; background: var(--gradient-primary);">
                   <i class="fas fa-users" style="font-size: 2rem; color: var(--bg-primary);"></i>
                 </div>
               {% endif %}
-              
+
               <div>
                 <h3 class="mb-1">{{ group.name }}</h3>
                 <p class="text-secondary mb-0">
@@ -100,7 +100,7 @@
             <i class="fas fa-info-circle me-2"></i>Previous Membership
           </h6>
           <p class="mb-0 small">
-            You were previously removed from this group. The admin will review your request to rejoin. 
+            You were previously removed from this group. The admin will review your request to rejoin.
             Please explain in your message why you'd like another chance.
           </p>
         </div>
@@ -178,9 +178,9 @@
                 </h6>
                 <div class="p-3 rounded" style="background: rgba(255, 255, 255, 0.05);">
                   <div class="d-flex align-items-center">
-                    <img src="{{ user.profile.image.url }}" 
-                         alt="{{ user.username }}" 
-                         class="rounded-circle me-3" 
+                    <img src="{{ user.profile.image.url }}"
+                         alt="{{ user.username }}"
+                         class="rounded-circle me-3"
                          style="width: 50px; height: 50px; object-fit: cover;">
                     <div>
                       <strong>{{ user.username }}</strong>

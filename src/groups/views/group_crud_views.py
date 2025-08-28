@@ -15,7 +15,7 @@ from groups.models import Group, GroupMembership, GroupAddRequest
 
 
 class GroupDashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "groups/group_dashboard.html"
+    template_name = "groups/group_crud/group_dashboard.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -51,7 +51,7 @@ class GroupDashboardView(LoginRequiredMixin, TemplateView):
 
 class GroupCreateView(LoginRequiredMixin, CreateView):
     form_class = GroupForm
-    template_name = "groups/group_create.html"
+    template_name = "groups/group_crud/group_create.html"
 
     def get_success_url(self):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
@@ -73,7 +73,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
 
 class GroupDetailView(LoginRequiredMixin, DetailView):
     model = Group
-    template_name = "groups/group_detail.html"
+    template_name = "groups/group_crud/group_detail.html"
     context_object_name = "group"
 
     def get_queryset(self):
@@ -108,7 +108,7 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
 class GroupUpdateView(LoginRequiredMixin, UpdateView):
     model = Group
     form_class = GroupForm
-    template_name = "groups/group_edit.html"
+    template_name = "groups/group_crud/group_edit.html"
     context_object_name = "group"
 
     def get_queryset(self):
@@ -120,7 +120,7 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
 
 class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
-    template_name = "groups/group_confirm_delete.html"
+    template_name = "groups/group_crud/group_confirm_delete.html"
 
     def get_queryset(self):
         return self.request.user.groups_hosted.all()

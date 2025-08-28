@@ -14,6 +14,44 @@ from groups.models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
 
 
+class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = User
+    template_name = "groups/group_functionality/group_user_list.html"
+    context_object_name = "members"
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
+
+    def test_func(self):
+        return GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            user=self.request.user,
+            group=self.group,
+        ).exists()
+
+    def get_queryset(self):
+        return (
+            self.model.objects.filter(
+                group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
+                group_memberships__group=self.group,
+            )
+            .exclude(id=self.group.admin_user.id)
+            .select_related("profile")
+        )
+
+    def get_context_data(self, *, object_list=..., **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["group"] = self.group
+        context["admin"] = self.group.admin_user
+        context["is_admin"] = self.request.user == self.group.admin_user
+        context["host_view"] = (
+            self.request.GET.get("host_view") == "true"
+            and self.request.user == context["admin"]
+        )
+        return context
+
+
 class GroupUserKickView(LoginRequiredMixin, View):
     def post(self, request, pk, user_pk):
         group = get_object_or_404(Group, pk=pk)
@@ -53,7 +91,7 @@ class GroupUserBlockView(LoginRequiredMixin, View):
 
 class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = GroupAddRequest
-    template_name = "groups/group_request_list.html"
+    template_name = "groups/group_functionality/group_request_list.html"
     context_object_name = "requests"
 
     def setup(self, request, *args, **kwargs):
@@ -120,44 +158,6 @@ class GroupRankingsView(ListView):
     pass
 
 
-class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
-    model = User
-    template_name = "groups/group_user_list.html"
-    context_object_name = "members"
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
-
-    def test_func(self):
-        return GroupMembership.objects.filter(
-            status=GroupMembership.MembershipStatus.ACCEPTED,
-            user=self.request.user,
-            group=self.group,
-        ).exists()
-
-    def get_queryset(self):
-        return (
-            self.model.objects.filter(
-                group_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
-                group_memberships__group=self.group,
-            )
-            .exclude(id=self.group.admin_user.id)
-            .select_related("profile")
-        )
-
-    def get_context_data(self, *, object_list=..., **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["group"] = self.group
-        context["admin"] = self.group.admin_user
-        context["is_admin"] = self.request.user == self.group.admin_user
-        context["host_view"] = (
-            self.request.GET.get("host_view") == "true"
-            and self.request.user == context["admin"]
-        )
-        return context
-
-
 class GroupExitView(LoginRequiredMixin, View):
     def post(self, request, pk):
         group = get_object_or_404(Group, pk=pk)
@@ -173,7 +173,7 @@ class GroupExitView(LoginRequiredMixin, View):
 
 class GroupSearchView(LoginRequiredMixin, ListView):
     model = Group
-    template_name = "groups/group_search.html"
+    template_name = "groups/group_functionality/group_search.html"
     context_object_name = "groups"
     paginate_by = 10
 
@@ -211,7 +211,7 @@ class GroupSearchView(LoginRequiredMixin, ListView):
 class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = GroupAddRequestForm
     model = GroupAddRequest
-    template_name = "groups/group_send_request.html"
+    template_name = "groups/group_functionality/group_send_request.html"
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

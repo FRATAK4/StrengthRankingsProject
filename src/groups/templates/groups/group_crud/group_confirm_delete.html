@@ -64,12 +64,12 @@
             <div class="p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.05);">
               <div class="d-flex align-items-center mb-3">
                 {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-                  <img src="{{ group.image.url }}" 
-                       alt="{{ group.name }}" 
-                       class="rounded-circle me-3" 
+                  <img src="{{ group.image.url }}"
+                       alt="{{ group.name }}"
+                       class="rounded-circle me-3"
                        style="width: 60px; height: 60px; object-fit: cover;">
                 {% else %}
-                  <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                  <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
                        style="width: 60px; height: 60px; background: var(--gradient-primary);">
                     <i class="fas fa-users" style="color: var(--bg-primary);"></i>
                   </div>
@@ -119,8 +119,8 @@
                 <i class="fas fa-users me-2"></i>Impact on Members
               </h6>
               <p class="small mb-0">
-                <strong>{{ group.user_memberships.count|add:"-1" }} member{{ group.user_memberships.count|add:"-1"|pluralize }}</strong> 
-                (excluding you) will lose access to this group. Consider notifying them before deletion or 
+                <strong>{{ group.user_memberships.count|add:"-1" }} member{{ group.user_memberships.count|add:"-1"|pluralize }}</strong>
+                (excluding you) will lose access to this group. Consider notifying them before deletion or
                 transferring ownership to another member.
               </p>
             </div>
@@ -135,9 +135,9 @@
                 <label for="confirmName" class="form-label text-danger">
                   <strong>Type the group name to confirm:</strong>
                 </label>
-                <input type="text" 
-                       class="form-control" 
-                       id="confirmName" 
+                <input type="text"
+                       class="form-control"
+                       id="confirmName"
                        placeholder="Enter '{{ group.name }}' to confirm"
                        data-confirm-text="{{ group.name }}"
                        autocomplete="off">
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
       checkbox.disabled = true;
       checkbox.checked = false;
     }
-    
+
     // Enable delete button only if both conditions are met
     deleteBtn.disabled = !(nameInput.value === confirmText && checkbox.checked);
   }

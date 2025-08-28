@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Edit {{ group.name }}{% endblock %}
+{% block title %}Create Group{% endblock %}
 
 {% block header %}
 <nav class="navbar navbar-expand-lg">
@@ -12,8 +12,8 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'group_detail' pk=group.pk %}?host_view=true">
-            <i class="fas fa-arrow-left me-1"></i>Back to {{ group.name }}
+          <a class="nav-link" href="{% url 'group_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>Back to Groups
           </a>
         </li>
         <li class="nav-item dropdown">
@@ -23,7 +23,6 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
-            <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>My Groups</a></li>
             <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
@@ -49,35 +48,11 @@
       <div class="col-md-8 col-lg-6">
         <!-- Page Header -->
         <div class="text-center mb-5">
-          <h1 class="display-title">Edit Group</h1>
-          <p class="text-secondary">Update your group information</p>
+          <h1 class="display-title">Create Your Group</h1>
+          <p class="text-secondary">Build your fitness community and compete together</p>
         </div>
 
-        <!-- Current Group Info Alert -->
-        <div class="alert alert-info mb-4" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
-          <div class="d-flex align-items-center">
-            {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-              <img src="{{ group.image.url }}" 
-                   alt="{{ group.name }}" 
-                   class="rounded-circle me-3" 
-                   style="width: 50px; height: 50px; object-fit: cover;">
-            {% else %}
-              <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" 
-                   style="width: 50px; height: 50px; background: var(--gradient-primary);">
-                <i class="fas fa-users" style="color: var(--bg-primary);"></i>
-              </div>
-            {% endif %}
-            <div>
-              <strong>Editing:</strong> {{ group.name }}
-              <div class="small">
-                <i class="fas fa-users me-1"></i>{{ group.member_count|default:"0" }} members •
-                <i class="fas fa-calendar me-1"></i>Created {{ group.created_at|timesince }} ago
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Edit Form Card -->
+        <!-- Form Card -->
         <div class="card profile-card">
           <div class="card-body p-4">
             <!-- Display Messages -->
@@ -91,7 +66,7 @@
             {% endif %}
 
             <!-- Form -->
-            <form method="post" action="{% url 'group_edit' pk=group.pk %}" enctype="multipart/form-data">
+            <form method="post" action="{% url 'group_create' %}" enctype="multipart/form-data">
               {% csrf_token %}
 
               <!-- Form Errors -->
@@ -111,7 +86,7 @@
                   name="{{ form.name.name }}"
                   class="form-control {% if form.name.errors %}is-invalid{% endif %}"
                   id="{{ form.name.id_for_label }}"
-                  value="{{ form.name.value|default:group.name }}"
+                  value="{{ form.name.value|default:'' }}"
                   placeholder="e.g., Downtown Gym Warriors, Powerlifting Squad"
                   maxlength="50"
                   required
@@ -137,7 +112,7 @@
                   rows="4"
                   placeholder="Describe your group's goals, training style, requirements for joining, etc."
                   required
-                >{{ form.description.value|default:group.description }}</textarea>
+                >{{ form.description.value|default:'' }}</textarea>
                 {% if form.description.errors %}
                   <div class="invalid-feedback">
                     {{ form.description.errors.0 }}
@@ -149,20 +124,8 @@
               <!-- Group Image Field -->
               <div class="mb-4">
                 <label for="{{ form.image.id_for_label }}" class="form-label">
-                  <i class="fas fa-image me-1"></i>Group Image
+                  <i class="fas fa-image me-1"></i>Group Image (Optional)
                 </label>
-                
-                <!-- Current Image Preview -->
-                {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-                <div class="mb-3">
-                  <p class="text-secondary small mb-2">Current image:</p>
-                  <img src="{{ group.image.url }}" 
-                       alt="Current group image" 
-                       class="rounded" 
-                       style="max-width: 200px; max-height: 200px; object-fit: cover;">
-                </div>
-                {% endif %}
-                
                 <input
                   type="file"
                   name="{{ form.image.name }}"
@@ -175,23 +138,30 @@
                     {{ form.image.errors.0 }}
                   </div>
                 {% endif %}
-                <small class="text-secondary">
-                  {% if group.image and group.image.url != '/media/group_pics/default.jpg' %}
-                    Upload a new image to replace the current one (optional)
-                  {% else %}
-                    Upload a logo or image for your group (optional)
-                  {% endif %}
-                </small>
+                <small class="text-secondary">Upload a logo or image for your group (optional)</small>
               </div>
 
               <div class="divider"></div>
 
+              <!-- What Happens Next Info -->
+              <div class="alert alert-info mb-4" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+                <h6 class="alert-heading mb-2">
+                  <i class="fas fa-info-circle me-2"></i>After Creating Your Group
+                </h6>
+                <ul class="small mb-0">
+                  <li>You'll become the group admin with full control</li>
+                  <li>You can invite members or approve join requests</li>
+                  <li>Set up rankings and competitions</li>
+                  <li>Manage members and group settings</li>
+                </ul>
+              </div>
+
               <!-- Form Actions -->
               <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg">
-                  <i class="fas fa-save me-2"></i>Save Changes
+                  <i class="fas fa-plus-circle me-2"></i>Create Group
                 </button>
-                <a href="{% url 'group_detail' pk=group.pk %}?host_view=true" class="btn btn-outline-secondary">
+                <a href="{% url 'group_dashboard' %}" class="btn btn-outline-secondary">
                   <i class="fas fa-times me-2"></i>Cancel
                 </a>
               </div>
@@ -199,42 +169,45 @@
           </div>
         </div>
 
-        <!-- Settings Info -->
+        <!-- Group Ideas -->
         <div class="mt-4">
           <div class="card" style="background: rgba(255,210,63,0.1); border: 1px solid rgba(255,210,63,0.3);">
             <div class="card-body">
               <h6 class="text-warning mb-3">
-                <i class="fas fa-cog me-2"></i>Additional Settings
+                <i class="fas fa-lightbulb me-2"></i>Group Ideas
               </h6>
-              <p class="small text-secondary mb-2">
-                Looking for more options? These features are coming soon:
-              </p>
-              <ul class="small text-secondary mb-0">
-                <li>Privacy settings (Public/Private groups)</li>
-                <li>Automatic approval for join requests</li>
-                <li>Member roles and permissions</li>
-                <li>Group categories and tags</li>
-                <li>Custom ranking categories</li>
-              </ul>
+              <div class="row">
+                <div class="col-md-6">
+                  <ul class="small text-secondary mb-0">
+                    <li>Local gym communities</li>
+                    <li>Training program groups</li>
+                    <li>Competition prep teams</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <ul class="small text-secondary mb-0">
+                    <li>Powerlifting clubs</li>
+                    <li>CrossFit boxes</li>
+                    <li>Corporate fitness challenges</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Danger Zone -->
+        <!-- Community Guidelines -->
         <div class="mt-3">
-          <div class="card" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
+          <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
             <div class="card-body">
-              <h6 class="text-danger mb-3">
-                <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+              <h6 class="text-gradient mb-3">
+                <i class="fas fa-shield-alt me-2"></i>Community Guidelines
               </h6>
-              <p class="small text-secondary mb-3">
-                Irreversible and destructive actions
+              <p class="small text-secondary mb-0">
+                As a group admin, you're responsible for maintaining a positive environment.
+                Encourage supportive competition, celebrate achievements, and keep your group
+                focused on fitness goals.
               </p>
-              <div class="d-grid gap-2">
-                <a href="{% url 'group_delete' pk=group.pk %}" class="btn btn-outline-danger">
-                  <i class="fas fa-trash me-2"></i>Delete This Group
-                </a>
-              </div>
             </div>
           </div>
         </div>
