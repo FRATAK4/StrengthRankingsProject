@@ -7,6 +7,7 @@ from django.views.generic import (
     View,
     ListView,
     CreateView,
+    TemplateView,
 )
 
 from groups.forms import GroupForm, GroupAddRequestForm
@@ -154,8 +155,8 @@ class GroupDeclineRequestView(LoginRequiredMixin, View):
         return redirect("group_request_list", pk=pk)
 
 
-class GroupRankingsView(ListView):
-    pass
+class GroupRankingsView(TemplateView):
+    template_name = "groups/group_functionality/group_rankings.html"
 
 
 class GroupExitView(LoginRequiredMixin, View):
