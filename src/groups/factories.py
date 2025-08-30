@@ -1,8 +1,11 @@
 from django.utils import timezone
 import factory.django
+from faker import Faker
 
-from .models import Group
+from .models import Group, GroupAddRequest
 from ..accounts.factories import UserFactory
+
+fake = Faker()
 
 
 class GroupFactory(factory.django.DjangoModelFactory):
@@ -14,3 +17,30 @@ class GroupFactory(factory.django.DjangoModelFactory):
     image = factory.django.ImageField()
     created_at = factory.LazyFunction(timezone.now)
     admin_user = factory.SubFactory(UserFactory)
+
+
+class GroupAddRequestFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = GroupAddRequest
+
+    message = factory.Faker("text", max_nb_chars=500)
+    status = factory.Iterator(["pending", "accepted", "declined"])
+
+    @factory.lazy_attribute
+    def sent_at(self):
+        match self.status:
+            case "pending":
+                return timezone.now()
+            case "accepted" | "declined":
+                return fake.date_between(start_date="-1m", end_date="today")
+
+    @factory.lazy_attribute
+    def responded_at(self):
+        match self.status:
+            case "pending":
+                return None
+            case "accepted" | "declined":
+                return timezone.now()
+
+    user = factory.SubFactory(UserFactory)
+    group = factory.SubFactory(GroupFactory)
