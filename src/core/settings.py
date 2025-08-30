@@ -38,8 +38,6 @@ INSTALLED_EXTENSIONS = [
     "notifications.apps.NotificationsConfig",
     "training_plans.apps.TrainingPlansConfig",
     "workout_performance.apps.WorkoutPerformanceConfig",
-    "factory_boy",
-    "Faker",
 ]
 
 INSTALLED_APPS += INSTALLED_EXTENSIONS
