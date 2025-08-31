@@ -10,9 +10,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         count = options["count"]
 
-        self.stdout.write(self.style.WARNING(f"Creating {count} user(s)..."))
+        self.stdout.write(f"Creating {count} user(s)...")
 
         self._create_users(count)
+
+        self.stdout.write(f"Successfully created {count} user(s)!")
 
     def _create_users(self, count):
         users = UserFactory.create_batch(count)

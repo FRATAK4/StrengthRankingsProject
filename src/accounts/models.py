@@ -14,3 +14,6 @@ class Profile(models.Model):
     age = models.IntegerField()
     body_weight = models.DecimalField(max_digits=4, decimal_places=1)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    def __str__(self):
+        return f"{self.user.username}_profile"
