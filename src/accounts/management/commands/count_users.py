@@ -9,4 +9,4 @@ class Command(BaseCommand):
         self.stdout.write(f"There is {nb_users} users created")
 
     def _count_users(self):
-        return User.objects.count()
+        return User.objects.all().count()

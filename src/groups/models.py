@@ -25,6 +25,9 @@ class Group(models.Model):
     )
     objects = GroupManager()
 
+    def __str__(self):
+        return f"{self.name}"
+
 
 class GroupAddRequest(models.Model):
     class RequestStatus(models.TextChoices):
