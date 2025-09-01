@@ -3,8 +3,9 @@ import factory.django
 from faker import Faker
 import random
 
+from django.contrib.auth.models import User
 from .models import Group, GroupAddRequest, GroupMembership
-from ..accounts.factories import UserFactory
+from accounts.factories import UserFactory
 
 fake = Faker()
 
@@ -18,6 +19,14 @@ class GroupFactory(factory.django.DjangoModelFactory):
     image = factory.django.ImageField()
     created_at = factory.LazyFunction(timezone.now)
     admin_user = factory.SubFactory(UserFactory)
+
+
+class GroupFactoryExistingAdmin(GroupFactory):
+    @factory.lazy_attribute
+    def admin_user(self):
+        users = User.objects.all()
+
+        return random.choice(users)
 
 
 class GroupAddRequestFactory(factory.django.DjangoModelFactory):

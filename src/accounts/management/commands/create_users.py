@@ -17,6 +17,4 @@ class Command(BaseCommand):
         self.stdout.write(f"Successfully created {count} user(s)!")
 
     def _create_users(self, count):
-        users = UserFactory.create_batch(count)
-
-        return users
+        UserFactory.create_batch(count)
