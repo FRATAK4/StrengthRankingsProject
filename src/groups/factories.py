@@ -68,7 +68,10 @@ class GroupAddRequestFactory(factory.django.DjangoModelFactory):
 class GroupSendRequestFactory(GroupAddRequestFactory):
     status = "pending"
     user = factory.Iterator(User.objects.all())
-    group = factory.Iterator(Group.objects.all())
+
+    @factory.lazy_attribute
+    def group(self):
+        return random.choice(Group.objects.all().exclude(admin_user=self.user))
 
 
 class GroupMembershipFactory(factory.django.DjangoModelFactory):
