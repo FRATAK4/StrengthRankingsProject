@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 
 class GroupManager(models.Manager):
     def with_member_count(self):
-        return self.annotate(
+        return self.get_queryset().annotate(
             member_count=Count(
                 "user_memberships",
                 filter=Q(

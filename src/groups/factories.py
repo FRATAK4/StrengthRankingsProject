@@ -28,6 +28,15 @@ class GroupFactoryExistingAdmin(GroupFactory):
 
         return random.choice(users)
 
+    @factory.post_generation
+    def create_membership(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        GroupMembershipFactory.create(
+            status="accepted", user=self.admin_user, group=self
+        )
+
 
 class GroupAddRequestFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -54,6 +63,12 @@ class GroupAddRequestFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     group = factory.SubFactory(GroupFactory)
+
+
+class GroupSendRequestFactory(GroupAddRequestFactory):
+    status = "pending"
+    user = factory.Iterator(User.objects.all())
+    group = factory.Iterator(Group.objects.all())
 
 
 class GroupMembershipFactory(factory.django.DjangoModelFactory):
