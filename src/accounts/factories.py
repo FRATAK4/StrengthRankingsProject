@@ -7,7 +7,7 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Profile
 
-    image = factory.django.ImageField()
+    image = factory.django.ImageField(color=factory.Faker("color"))
     gender = factory.Iterator(["male", "female"])
     age = factory.Faker("random_int", min=18, max=50)
     body_weight = factory.Faker(

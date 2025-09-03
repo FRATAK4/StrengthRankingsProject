@@ -16,7 +16,7 @@ class GroupFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: f"group{n}")
     description = factory.Faker("text", max_nb_chars=500)
-    image = factory.django.ImageField()
+    image = factory.django.ImageField(color=factory.Faker("color"))
     created_at = factory.LazyFunction(timezone.now)
     admin_user = factory.SubFactory(UserFactory)
 
