@@ -1,5 +1,4 @@
 from django.core.management import BaseCommand
-from django.db import transaction
 
 from groups.models import GroupAddRequest, GroupMembership
 
@@ -12,7 +11,6 @@ class Command(BaseCommand):
 
         self.stdout.write("Successfully declined all requests!")
 
-    @transaction.atomic
     def _decline_requests(self):
         GroupAddRequest.objects.filter(
             status=GroupAddRequest.RequestStatus.PENDING
