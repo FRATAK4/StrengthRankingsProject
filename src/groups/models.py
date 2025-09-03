@@ -47,7 +47,7 @@ class GroupAddRequest(models.Model):
     )
 
     class Meta:
-        unique_together = (("user", "group"),)
+        unique_together = (("user", "group", "status", "sent_at", "responded_at"),)
 
 
 class GroupMembership(models.Model):
