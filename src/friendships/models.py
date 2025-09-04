@@ -7,16 +7,21 @@ from django.contrib.auth.models import User
 class Friendship(models.Model):
     class FriendshipStatus(models.TextChoices):
         ACTIVE = "accepted"
+        KICKED = "kicked"
         BLOCKED = "blocked"
 
     status = models.CharField(max_length=30, choices=FriendshipStatus.choices)
     created_at = models.DateTimeField(auto_now_add=True)
-    blocked_at = models.DateTimeField(auto_now=True)
+    kicked_at = models.DateTimeField(null=True)
+    blocked_at = models.DateTimeField(null=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_friendships"
     )
     friend = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="accepted_friendships"
+    )
+    kicked_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="kicked_friendships", null=True
     )
     blocked_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="blocked_friendships", null=True
