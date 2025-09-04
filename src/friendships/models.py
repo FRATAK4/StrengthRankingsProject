@@ -1,12 +1,10 @@
-from datetime import datetime
-
 from django.db import models
 from django.contrib.auth.models import User
 
 
 class Friendship(models.Model):
     class FriendshipStatus(models.TextChoices):
-        ACTIVE = "accepted"
+        ACTIVE = "active"
         KICKED = "kicked"
         BLOCKED = "blocked"
 
@@ -49,4 +47,4 @@ class FriendRequest(models.Model):
     )
 
     class Meta:
-        unique_together = (("sender", "receiver"),)
+        unique_together = (("sender", "receiver", "status", "sent_at"),)
