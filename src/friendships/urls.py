@@ -1,8 +1,10 @@
 from django.urls import path
 
-from .views import FriendListView, FriendRequestListView
+from .views import FriendSearchView, FriendSendRequestView
 
 urlpatterns = [
-    path("", FriendListView.as_view(), name="friendships"),
-    path("requests/", FriendRequestListView.as_view(), name="friendships-requests"),
+    path("search/", FriendSearchView.as_view(), name="friend_search"),
+    path(
+        "search/<int:pk>", FriendSendRequestView.as_view(), name="friend_send_request"
+    ),
 ]
