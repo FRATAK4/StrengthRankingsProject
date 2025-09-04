@@ -1,8 +1,12 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Exists, Q, OuterRef
-from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView
 
 from django.contrib.auth.models import User
+
+from .forms import FriendRequestForm
 from .models import Friendship, FriendRequest
 
 
@@ -50,3 +54,44 @@ class FriendSearchView(LoginRequiredMixin, ListView):
                 )
             ),
         )
+
+
+class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    form_class = FriendRequestForm
+    model = FriendRequest
+    template_name = "friendships/friend_send_request.html"
+
+    def get_success_url(self):
+        return reverse_lazy("")
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.friend = get_object_or_404(User, pk=kwargs.get("pk"))
+
+    def test_func(self):
+        return not Exists(
+            Friendship.objects.filter(
+                Q(status=Friendship.FriendshipStatus.BLOCKED)
+                | Q(status=Friendship.FriendshipStatus.ACTIVE),
+                Q(user=self.request.user, friend=self.friend)
+                | Q(user=self.friend, friend=self.request.user),
+            )
+        ) and not Exists(
+            FriendRequest.objects.filter(
+                Q(status=FriendRequest.RequestStatus.PENDING),
+                Q(sender=self.request.user, receiver=self.friend)
+                | Q(sender=self.friend, receiver=self.request.user),
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["friend"] = self.friend
+        return context
+
+    def form_valid(self, form):
+        form.instance.status = FriendRequest.RequestStatus.PENDING
+        form.instance.sender = self.request.user
+        form.instance.receiver = self.friend
+
+        return super().form_valid(form)
