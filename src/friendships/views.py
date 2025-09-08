@@ -13,6 +13,21 @@ class FriendDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'friendships/friend_dashboard.html'
 
 
+class FriendListView(LoginRequiredMixin, ListView):
+    model = User
+    template_name = "friendships/friend_list.html"
+    context_object_name = "friends"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return self.model.objects.filter(
+            Q(sent_friendships__friend=self.request.user) &
+            Q(sent_friendships__status=Friendship.FriendshipStatus.ACTIVE) |
+            Q(received_friendships__user=self.request.user) &
+            Q(received_friendships__status=Friendship.FriendshipStatus.ACTIVE)
+        )
+
+
 class FriendSearchView(LoginRequiredMixin, ListView):
     model = User
     template_name = "friendships/friend_search.html"
