@@ -41,6 +41,18 @@ class FriendRequestSentListView(LoginRequiredMixin, ListView):
         ).select_related("receiver")
 
 
+class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
+    model = FriendRequest
+    template_name = "friendships/friend_request_received_list.html"
+    context_object_name = "requests_received"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return self.model.objects.filter(
+            status=FriendRequest.RequestStatus.PENDING, receiver=self.request.user
+        ).select_related("sender")
+
+
 class FriendSearchView(LoginRequiredMixin, ListView):
     model = User
     template_name = "friendships/friend_search.html"

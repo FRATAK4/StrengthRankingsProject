@@ -6,6 +6,7 @@ from .views import (
     FriendDashboardView,
     FriendListView,
     FriendRequestSentListView,
+    FriendRequestReceivedListView,
 )
 
 urlpatterns = [
@@ -15,6 +16,11 @@ urlpatterns = [
         "request_sent/",
         FriendRequestSentListView.as_view(),
         name="friend_request_sent_list",
+    ),
+    path(
+        "request_received/",
+        FriendRequestReceivedListView.as_view(),
+        name="friend_request_received_list",
     ),
     path("search/", FriendSearchView.as_view(), name="friend_search"),
     path(
