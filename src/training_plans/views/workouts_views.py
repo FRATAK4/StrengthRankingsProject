@@ -127,9 +127,7 @@ class WorkoutExercisesManageView(LoginRequiredMixin, View):
         exercise_set_formsets = []
         for i, workout_exercise_form in enumerate(workout_exercise_formset.forms):
             formset = ExerciseSetFormSet(
-                data,
-                instance=workout_exercise_form.instance,
-                prefix=f"sets-{i}"
+                data, instance=workout_exercise_form.instance, prefix=f"sets-{i}"
             )
             exercise_set_formsets.append(formset)
 
@@ -147,11 +145,15 @@ class WorkoutExercisesManageView(LoginRequiredMixin, View):
         }
 
         return render(
-            self.request, "training_plans/workouts/workout_exercises_manage.html", context
+            self.request,
+            "training_plans/workouts/workout_exercises_manage.html",
+            context,
         )
 
     def post(self, request, *args, **kwargs):
-        workout_exercise_formset, exercise_set_formsets = self.get_formsets(request.POST)
+        workout_exercise_formset, exercise_set_formsets = self.get_formsets(
+            request.POST
+        )
 
         if workout_exercise_formset.is_valid():
             workout_exercise_formset.save()

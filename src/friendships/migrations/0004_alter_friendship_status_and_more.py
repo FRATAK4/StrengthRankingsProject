@@ -7,18 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('friendships', '0003_friendship_kicked_at_friendship_kicked_by_and_more'),
+        ("friendships", "0003_friendship_kicked_at_friendship_kicked_by_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='friendship',
-            name='status',
-            field=models.CharField(choices=[('active', 'Active'), ('kicked', 'Kicked'), ('blocked', 'Blocked')], max_length=30),
+            model_name="friendship",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("active", "Active"),
+                    ("kicked", "Kicked"),
+                    ("blocked", "Blocked"),
+                ],
+                max_length=30,
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='friendrequest',
-            unique_together={('sender', 'receiver', 'status', 'sent_at')},
+            name="friendrequest",
+            unique_together={("sender", "receiver", "status", "sent_at")},
         ),
     ]

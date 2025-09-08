@@ -9,8 +9,9 @@ from django.contrib.auth.models import User
 from .forms import FriendRequestForm
 from .models import Friendship, FriendRequest
 
+
 class FriendDashboardView(LoginRequiredMixin, TemplateView):
-    template_name = 'friendships/friend_dashboard.html'
+    template_name = "friendships/friend_dashboard.html"
 
 
 class FriendListView(LoginRequiredMixin, ListView):
@@ -21,10 +22,10 @@ class FriendListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            Q(sent_friendships__friend=self.request.user) &
-            Q(sent_friendships__status=Friendship.FriendshipStatus.ACTIVE) |
-            Q(received_friendships__user=self.request.user) &
-            Q(received_friendships__status=Friendship.FriendshipStatus.ACTIVE)
+            Q(sent_friendships__friend=self.request.user)
+            & Q(sent_friendships__status=Friendship.FriendshipStatus.ACTIVE)
+            | Q(received_friendships__user=self.request.user)
+            & Q(received_friendships__status=Friendship.FriendshipStatus.ACTIVE)
         )
 
 

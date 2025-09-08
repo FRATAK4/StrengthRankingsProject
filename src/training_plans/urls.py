@@ -11,7 +11,8 @@ from .views.workouts_views import (
     WorkoutCreateView,
     WorkoutDetailView,
     WorkoutUpdateView,
-    WorkoutDeleteView, WorkoutExercisesManageView,
+    WorkoutDeleteView,
+    WorkoutExercisesManageView,
 )
 
 urlpatterns = [
