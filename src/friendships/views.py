@@ -2,12 +2,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Exists, Q, OuterRef
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, TemplateView
 
 from django.contrib.auth.models import User
 
 from .forms import FriendRequestForm
 from .models import Friendship, FriendRequest
+
+class FriendDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'friendships/friend_dashboard.html'
 
 
 class FriendSearchView(LoginRequiredMixin, ListView):
