@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
-from django.db.models import Exists, Q, OuterRef
+from django.db.models import Exists, Q, OuterRef, F
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -169,6 +169,21 @@ class FriendUnblockView(LoginRequiredMixin, View):
         friendship.save()
 
         return redirect("friend_blocked_list")
+
+
+class FriendBlockedByListView(LoginRequiredMixin, ListView):
+    model = User
+    template_name = "friendships/friend_blocked_by_list.html"
+    context_object_name = "friends_blocked_by"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return self.model.objects.filter(
+            Q(sent_friendships__friend=self.request.user)
+            & Q(sent_friendships__blocked_by=F("sent_friendships__user"))
+            | Q(accepted_friendships__user=self.request.user)
+            & Q(accepted_friendships__blocked_by=F("accepted_friendships__friend"))
+        )
 
 
 class FriendSearchView(LoginRequiredMixin, ListView):

@@ -13,6 +13,7 @@ from .views import (
     FriendDeclineRequestView,
     FriendBlockedListView,
     FriendUnblockView,
+    FriendBlockedByListView,
 )
 
 urlpatterns = [
@@ -43,6 +44,9 @@ urlpatterns = [
     path("blocked/", FriendBlockedListView.as_view(), name="friend_blocked_list"),
     path(
         "blocked/<int:pk>/unblock/", FriendUnblockView.as_view(), name="friend_unblock"
+    ),
+    path(
+        "blocked_by/", FriendBlockedByListView.as_view(), name="friend_blocked_by_list"
     ),
     path("search/", FriendSearchView.as_view(), name="friend_search"),
     path(
