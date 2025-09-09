@@ -153,12 +153,8 @@ class FriendUnblockView(LoginRequiredMixin, View):
     def post(self, request, pk):
         friend = get_object_or_404(User, pk=pk)
         friendship = Friendship.objects.filter(
-            Q(user=self.request.user)
-            & Q(friend=friend)
-            & Q(blocked_by=self.request.user)
-            | Q(user=friend)
-            & Q(friend=self.request.user)
-            & Q(blocked_by=self.request.user)
+            Q(user=request.user) & Q(friend=friend) & Q(blocked_by=request.user)
+            | Q(user=friend) & Q(friend=request.user) & Q(blocked_by=request.user)
         ).first()
 
         friendship.status = Friendship.FriendshipStatus.ACTIVE
