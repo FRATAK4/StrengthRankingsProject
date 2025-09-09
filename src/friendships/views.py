@@ -46,14 +46,14 @@ class FriendKickView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
-            messages.error(request, "You can't kick this user")
+            messages.error(request, "You can't kick this user!")
             return redirect("friend_list")
 
-        friendship.status = Friendship.FriendshipStatus.KICKED
-        friendship.kicked_at = timezone.now()
-        friendship.kicked_by = request.user
-
-        friendship.save()
+        Friendship.objects.filter(pk=friendship.pk).update(
+            status=Friendship.FriendshipStatus.BLOCKED,
+            kicked_at=timezone.now(),
+            kicked_by=request.user,
+        )
 
         messages.success(
             request, f"You successfully removed {friend.username} from your friends!"
@@ -75,14 +75,16 @@ class FriendBlockView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
+            messages.error(request, "You can't block this user!")
             return redirect("friend_list")
 
-        friendship.status = Friendship.FriendshipStatus.BLOCKED
-        friendship.blocked_at = timezone.now()
-        friendship.blocked_by = request.user
+        Friendship.objects.filter(pk=friendship.pk).update(
+            status=Friendship.FriendshipStatus.BLOCKED,
+            blocked_at=timezone.now(),
+            blocked_by=request.user,
+        )
 
-        friendship.save()
-
+        messages.success(request, f"You successfully blocked {friend.username}!")
         return redirect("friend_list")
 
 
