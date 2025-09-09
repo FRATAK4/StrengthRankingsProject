@@ -101,6 +101,14 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
         ).select_related("sender")
 
 
+class FriendRequestCancelView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        request_sent = get_object_or_404(FriendRequest, pk=pk)
+        request_sent.delete()
+
+        return redirect("friend_request_sent_list")
+
+
 class FriendAcceptRequestView(LoginRequiredMixin, View):
     @transaction.atomic
     def post(self, request, pk):

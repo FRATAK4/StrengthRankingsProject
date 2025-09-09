@@ -14,6 +14,7 @@ from .views import (
     FriendBlockedListView,
     FriendUnblockView,
     FriendBlockedByListView,
+    FriendRequestCancelView,
 )
 
 urlpatterns = [
@@ -25,6 +26,11 @@ urlpatterns = [
         "request_sent/",
         FriendRequestSentListView.as_view(),
         name="friend_request_sent_list",
+    ),
+    path(
+        "request_sent/<int:pk>/cancel/",
+        FriendRequestCancelView.as_view(),
+        name="friend_request_cancel",
     ),
     path(
         "request_received/",
