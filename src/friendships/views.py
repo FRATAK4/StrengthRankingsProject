@@ -157,6 +157,9 @@ class FriendUnblockView(LoginRequiredMixin, View):
             | Q(user=friend) & Q(friend=request.user) & Q(blocked_by=request.user)
         ).first()
 
+        if not friendship:
+            return redirect("friend_blocked_list")
+
         friendship.status = Friendship.FriendshipStatus.ACTIVE
         friendship.created_at = timezone.now()
         friendship.kicked_at = None
