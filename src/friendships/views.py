@@ -125,6 +125,15 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
         return redirect("friend_request_received_list")
 
 
+class FriendDeclineRequestView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        request_received = get_object_or_404(FriendRequest, pk=pk)
+        request_received.status = FriendRequest.RequestStatus.DECLINED
+        request_received.save()
+
+        return redirect("friend_request_received_list")
+
+
 class FriendSearchView(LoginRequiredMixin, ListView):
     model = User
     template_name = "friendships/friend_search.html"
