@@ -39,9 +39,35 @@ class FriendKickView(LoginRequiredMixin, View):
             Q(user=request.user, friend=friend) | Q(user=friend, friend=request.user),
         ).first()
 
+        if not friendship:
+            return
+
         friendship.status = Friendship.FriendshipStatus.KICKED
         friendship.kicked_at = timezone.now()
         friendship.kicked_by = request.user
+
+        friendship.save()
+
+
+class FriendBlockView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        friend = get_object_or_404(User, pk=pk)
+        friendship = Friendship.objects.filter(
+            Q(
+                status__in=[
+                    Friendship.FriendshipStatus.ACTIVE,
+                    Friendship.FriendshipStatus.KICKED,
+                ]
+            ),
+            Q(user=request.user, friend=friend) | Q(user=friend, friend=request.user),
+        ).first()
+
+        if not friendship:
+            return
+
+        friendship.status = Friendship.FriendshipStatus.BLOCKED
+        friendship.blocked_at = timezone.now()
+        friendship.blocked_by = request.user
 
         friendship.save()
 

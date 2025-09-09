@@ -8,12 +8,14 @@ from .views import (
     FriendRequestSentListView,
     FriendRequestReceivedListView,
     FriendKickView,
+    FriendBlockView,
 )
 
 urlpatterns = [
     path("/", FriendDashboardView.as_view(), name="friend_dashboard"),
     path("list/", FriendListView.as_view(), name="friend_list"),
     path("list/<int:pk>/kick/", FriendKickView.as_view(), name="friend_kick"),
+    path("list/<int:pk>/blocked/", FriendBlockView.as_view(), name="friend_block"),
     path(
         "request_sent/",
         FriendRequestSentListView.as_view(),
