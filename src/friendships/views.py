@@ -41,7 +41,7 @@ class FriendKickView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
-            return
+            return redirect("friend_list")
 
         friendship.status = Friendship.FriendshipStatus.KICKED
         friendship.kicked_at = timezone.now()
@@ -66,7 +66,7 @@ class FriendBlockView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
-            return
+            return redirect("friend_list")
 
         friendship.status = Friendship.FriendshipStatus.BLOCKED
         friendship.blocked_at = timezone.now()
@@ -143,12 +143,33 @@ class FriendBlockedListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return self.model.objects.filter(
             Q(sent_friendships__friend=self.request.user)
-            & Q(sent_friendships__status=Friendship.FriendshipStatus.BLOCKED)
             & Q(sent_friendships__blocked_by=self.request.user)
             | Q(accepted_friendships__user=self.request.user)
-            & Q(accepted_friendships__status=Friendship.FriendshipStatus.BLOCKED)
             & Q(sent_friendships__blocked_by=self.request.user)
         )
+
+
+class FriendUnblockView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        friend = get_object_or_404(User, pk=pk)
+        friendship = Friendship.objects.filter(
+            Q(user=self.request.user)
+            & Q(friend=friend)
+            & Q(blocked_by=self.request.user)
+            | Q(user=friend)
+            & Q(friend=self.request.user)
+            & Q(blocked_by=self.request.user)
+        ).first()
+
+        friendship.status = Friendship.FriendshipStatus.ACTIVE
+        friendship.created_at = timezone.now()
+        friendship.kicked_at = None
+        friendship.blocked_at = None
+        friendship.kicked_by = None
+        friendship.blocked_by = None
+        friendship.save()
+
+        return redirect("friend_blocked_list")
 
 
 class FriendSearchView(LoginRequiredMixin, ListView):
