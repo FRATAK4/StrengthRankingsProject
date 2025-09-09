@@ -134,6 +134,23 @@ class FriendDeclineRequestView(LoginRequiredMixin, View):
         return redirect("friend_request_received_list")
 
 
+class FriendBlockedListView(LoginRequiredMixin, ListView):
+    model = User
+    template_name = "friendships/friend_blocked_list.html"
+    context_object_name = "friends_blocked"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return self.model.objects.filter(
+            Q(sent_friendships__friend=self.request.user)
+            & Q(sent_friendships__status=Friendship.FriendshipStatus.BLOCKED)
+            & Q(sent_friendships__blocked_by=self.request.user)
+            | Q(accepted_friendships__user=self.request.user)
+            & Q(accepted_friendships__status=Friendship.FriendshipStatus.BLOCKED)
+            & Q(sent_friendships__blocked_by=self.request.user)
+        )
+
+
 class FriendSearchView(LoginRequiredMixin, ListView):
     model = User
     template_name = "friendships/friend_search.html"
