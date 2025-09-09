@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Exists, Q, OuterRef
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views import View
 from django.views.generic import ListView, CreateView, TemplateView
 
 from django.contrib.auth.models import User
@@ -27,6 +29,21 @@ class FriendListView(LoginRequiredMixin, ListView):
             | Q(received_friendships__user=self.request.user)
             & Q(received_friendships__status=Friendship.FriendshipStatus.ACTIVE)
         )
+
+
+class FriendKickView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        friend = get_object_or_404(User, pk=pk)
+        friendship = Friendship.objects.filter(
+            Q(status=Friendship.FriendshipStatus.ACTIVE),
+            Q(user=request.user, friend=friend) | Q(user=friend, friend=request.user),
+        ).first()
+
+        friendship.status = Friendship.FriendshipStatus.KICKED
+        friendship.kicked_at = timezone.now()
+        friendship.kicked_by = request.user
+
+        friendship.save()
 
 
 class FriendRequestSentListView(LoginRequiredMixin, ListView):

@@ -7,11 +7,13 @@ from .views import (
     FriendListView,
     FriendRequestSentListView,
     FriendRequestReceivedListView,
+    FriendKickView,
 )
 
 urlpatterns = [
     path("/", FriendDashboardView.as_view(), name="friend_dashboard"),
     path("list/", FriendListView.as_view(), name="friend_list"),
+    path("list/<int:pk>/kick/", FriendKickView.as_view(), name="friend_kick"),
     path(
         "request_sent/",
         FriendRequestSentListView.as_view(),
