@@ -62,6 +62,7 @@ class FriendKickView(LoginRequiredMixin, View):
 
 
 class FriendBlockView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk):
         friend = get_object_or_404(User, pk=pk)
         friendship = Friendship.objects.filter(
@@ -83,6 +84,12 @@ class FriendBlockView(LoginRequiredMixin, View):
             blocked_at=timezone.now(),
             blocked_by=request.user,
         )
+
+        FriendRequest.objects.filter(
+            Q(sender=request.user, receiver=friend)
+            | Q(sender=friend, receiver=request.user),
+            status=FriendRequest.RequestStatus.PENDING,
+        ).update(status=FriendRequest.RequestStatus.DECLINED)
 
         messages.success(request, f"You successfully blocked {friend.username}!")
         return redirect("friend_list")
