@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import transaction
 from django.db.models import Exists, Q, OuterRef
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
@@ -94,6 +95,30 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
         return self.model.objects.filter(
             status=FriendRequest.RequestStatus.PENDING, receiver=self.request.user
         ).select_related("sender")
+
+
+class FriendAcceptRequestView(LoginRequiredMixin, View):
+    @transaction.atomic
+    def post(self, request, pk):
+        request_received = get_object_or_404(FriendRequest, pk=pk)
+        request_received.status = FriendRequest.RequestStatus.ACCEPTED
+        request_received.save()
+
+        friendship, created = Friendship.objects.get_or_create(
+            user=request_received.sender,
+            friend=request.user,
+            defaults={"status": Friendship.FriendshipStatus.ACTIVE},
+        )
+        if not created:
+            friendship.status = Friendship.FriendshipStatus.ACTIVE
+            friendship.created_at = timezone.now()
+            friendship.kicked_at = None
+            friendship.blocked_at = None
+            friendship.kicked_by = None
+            friendship.blocked_by = None
+            friendship.save()
+
+        return redirect("friend_request_received_list")
 
 
 class FriendSearchView(LoginRequiredMixin, ListView):
