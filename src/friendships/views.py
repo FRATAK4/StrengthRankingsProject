@@ -49,6 +49,8 @@ class FriendKickView(LoginRequiredMixin, View):
 
         friendship.save()
 
+        return redirect("friend_list")
+
 
 class FriendBlockView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -71,6 +73,8 @@ class FriendBlockView(LoginRequiredMixin, View):
         friendship.blocked_by = request.user
 
         friendship.save()
+
+        return redirect("friend_list")
 
 
 class FriendRequestSentListView(LoginRequiredMixin, ListView):
