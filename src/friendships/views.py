@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import Exists, Q, OuterRef, F
 from django.shortcuts import get_object_or_404, redirect
@@ -45,6 +46,7 @@ class FriendKickView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
+            messages.error(request, "You can't kick this user")
             return redirect("friend_list")
 
         friendship.status = Friendship.FriendshipStatus.KICKED
@@ -53,6 +55,9 @@ class FriendKickView(LoginRequiredMixin, View):
 
         friendship.save()
 
+        messages.success(
+            request, f"You successfully removed {friend.username} from your friends!"
+        )
         return redirect("friend_list")
 
 
