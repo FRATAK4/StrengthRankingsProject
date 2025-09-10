@@ -118,9 +118,13 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return self.model.objects.filter(
-            status=FriendRequest.RequestStatus.PENDING, receiver=self.request.user
-        ).select_related("sender")
+        return (
+            self.model.objects.filter(
+                status=FriendRequest.RequestStatus.PENDING, receiver=self.request.user
+            )
+            .select_related("sender", "sender__profile")
+            .order_by("-sent_at")
+        )
 
 
 class FriendRequestCancelView(LoginRequiredMixin, View):
