@@ -111,6 +111,20 @@ class FriendRequestSentListView(LoginRequiredMixin, ListView):
         )
 
 
+class FriendRequestCancelView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        request_sent = get_object_or_404(
+            FriendRequest,
+            pk=pk,
+            sender=request.user,
+            status=FriendRequest.RequestStatus.PENDING,
+        )
+        request_sent.delete()
+
+        messages.success("You successfully cancelled request!")
+        return redirect("friend_request_sent_list")
+
+
 class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
     model = FriendRequest
     template_name = "friendships/friend_request_received_list.html"
@@ -125,14 +139,6 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
             .select_related("sender", "sender__profile")
             .order_by("-sent_at")
         )
-
-
-class FriendRequestCancelView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        request_sent = get_object_or_404(FriendRequest, pk=pk)
-        request_sent.delete()
-
-        return redirect("friend_request_sent_list")
 
 
 class FriendAcceptRequestView(LoginRequiredMixin, View):
