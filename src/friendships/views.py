@@ -121,7 +121,7 @@ class FriendRequestCancelView(LoginRequiredMixin, View):
         )
         request_sent.delete()
 
-        messages.success("You successfully cancelled request!")
+        messages.success(request, "You successfully cancelled request!")
         return redirect("friend_request_sent_list")
 
 
