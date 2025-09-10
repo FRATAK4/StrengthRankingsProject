@@ -50,7 +50,7 @@ class FriendKickView(LoginRequiredMixin, View):
             return redirect("friend_list")
 
         Friendship.objects.filter(pk=friendship.pk).update(
-            status=Friendship.FriendshipStatus.BLOCKED,
+            status=Friendship.FriendshipStatus.KICKED,
             kicked_at=timezone.now(),
             kicked_by=request.user,
         )
