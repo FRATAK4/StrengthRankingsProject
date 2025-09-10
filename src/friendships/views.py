@@ -218,16 +218,12 @@ class FriendUnblockView(LoginRequiredMixin, View):
         ).first()
 
         if not friendship:
+            messages.error(request, "You can't unblock this user!")
             return redirect("friend_blocked_list")
 
-        friendship.status = Friendship.FriendshipStatus.ACTIVE
-        friendship.created_at = timezone.now()
-        friendship.kicked_at = None
-        friendship.blocked_at = None
-        friendship.kicked_by = None
-        friendship.blocked_by = None
-        friendship.save()
+        friendship.delete()
 
+        messages.success(request, f"You successfully unblocked {friend.username}!")
         return redirect("friend_blocked_list")
 
 
