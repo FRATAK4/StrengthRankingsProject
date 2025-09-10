@@ -144,7 +144,12 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
 class FriendAcceptRequestView(LoginRequiredMixin, View):
     @transaction.atomic
     def post(self, request, pk):
-        request_received = get_object_or_404(FriendRequest, pk=pk)
+        request_received = get_object_or_404(
+            FriendRequest,
+            pk=pk,
+            receiver=request.user,
+            status=FriendRequest.RequestStatus.PENDING,
+        )
         request_received.status = FriendRequest.RequestStatus.ACCEPTED
         request_received.save()
 
@@ -162,6 +167,9 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
             friendship.blocked_by = None
             friendship.save()
 
+        messages.success(
+            request, f"You are now friend with {request_received.sender.username}!"
+        )
         return redirect("friend_request_received_list")
 
 
