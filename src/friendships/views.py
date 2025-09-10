@@ -175,10 +175,18 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
 
 class FriendDeclineRequestView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        request_received = get_object_or_404(FriendRequest, pk=pk)
+        request_received = get_object_or_404(
+            FriendRequest,
+            pk=pk,
+            receiver=request.user,
+            status=FriendRequest.RequestStatus.PENDING,
+        )
         request_received.status = FriendRequest.RequestStatus.DECLINED
         request_received.save()
 
+        messages.success(
+            request, f"You declined request from {request_received.sender.username}!"
+        )
         return redirect("friend_request_received_list")
 
 
