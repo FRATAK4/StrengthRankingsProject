@@ -302,27 +302,40 @@ class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     template_name = "friendships/friend_send_request.html"
 
     def get_success_url(self):
-        return reverse_lazy("")
+        messages.success(
+            self.request, f"Friend request sent to {self.friend.username}!"
+        )
+        return reverse_lazy("friend_search")
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.friend = get_object_or_404(User, pk=kwargs.get("pk"))
 
     def test_func(self):
-        return not Exists(
-            Friendship.objects.filter(
-                Q(status=Friendship.FriendshipStatus.BLOCKED)
-                | Q(status=Friendship.FriendshipStatus.ACTIVE),
-                Q(user=self.request.user, friend=self.friend)
-                | Q(user=self.friend, friend=self.request.user),
-            )
-        ) and not Exists(
-            FriendRequest.objects.filter(
-                Q(status=FriendRequest.RequestStatus.PENDING),
-                Q(sender=self.request.user, receiver=self.friend)
-                | Q(sender=self.friend, receiver=self.request.user),
-            )
-        )
+        is_user = self.request.user == self.friend
+
+        has_friendship = Friendship.objects.filter(
+            Q(
+                status__in=[
+                    Friendship.FriendshipStatus.BLOCKED,
+                    Friendship.FriendshipStatus.ACTIVE,
+                ]
+            ),
+            Q(user=self.request.user, friend=self.friend)
+            | Q(user=self.friend, friend=self.request.user),
+        ).exists()
+
+        has_request = FriendRequest.objects.filter(
+            Q(status=FriendRequest.RequestStatus.PENDING),
+            Q(sender=self.request.user, receiver=self.friend)
+            | Q(sender=self.friend, receiver=self.request.user),
+        ).exists()
+
+        return not (is_user or has_friendship or has_request)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You can't send request to this user!")
+        return redirect("friend_search")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
