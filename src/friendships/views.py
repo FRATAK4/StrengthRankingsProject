@@ -253,42 +253,46 @@ class FriendSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return self.model.objects.exclude(pk=self.request.user.pk).annotate(
-            is_friend=Exists(
-                Friendship.objects.filter(
-                    Q(status=Friendship.FriendshipStatus.ACTIVE),
-                    Q(user=self.request.user, friend=OuterRef("pk"))
-                    | Q(user=OuterRef("pk"), friend=self.request.user),
-                )
-            ),
-            request_sent_to=Exists(
-                FriendRequest.objects.filter(
-                    status=FriendRequest.RequestStatus.PENDING,
-                    sender=self.request.user,
-                    receiver=OuterRef("pk"),
-                )
-            ),
-            request_sent_from=Exists(
-                FriendRequest.objects.filter(
-                    status=FriendRequest.RequestStatus.PENDING,
-                    sender=OuterRef("pk"),
-                    receiver=self.request.user,
-                )
-            ),
-            blocked=Exists(
-                Friendship.objects.filter(
-                    status=Friendship.FriendshipStatus.BLOCKED,
-                    user=self.request.user,
-                    friend=OuterRef("pk"),
-                )
-            ),
-            blocked_by=Exists(
-                Friendship.objects.filter(
-                    status=Friendship.FriendshipStatus.BLOCKED,
-                    user=OuterRef("pk"),
-                    friend=self.request.user,
-                )
-            ),
+        return (
+            self.model.objects.exclude(pk=self.request.user.pk)
+            .annotate(
+                is_friend=Exists(
+                    Friendship.objects.filter(
+                        Q(status=Friendship.FriendshipStatus.ACTIVE),
+                        Q(user=self.request.user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                    )
+                ),
+                request_sent_to=Exists(
+                    FriendRequest.objects.filter(
+                        status=FriendRequest.RequestStatus.PENDING,
+                        sender=self.request.user,
+                        receiver=OuterRef("pk"),
+                    )
+                ),
+                request_sent_from=Exists(
+                    FriendRequest.objects.filter(
+                        status=FriendRequest.RequestStatus.PENDING,
+                        sender=OuterRef("pk"),
+                        receiver=self.request.user,
+                    )
+                ),
+                blocked=Exists(
+                    Friendship.objects.filter(
+                        Q(blocked_by=self.request.user),
+                        Q(user=self.request.user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                    )
+                ),
+                blocked_by=Exists(
+                    Friendship.objects.filter(
+                        Q(blocked_by=OuterRef("pk")),
+                        Q(user=self.request.user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                    )
+                ),
+            )
+            .distinct()
         )
 
 
