@@ -235,11 +235,15 @@ class FriendBlockedByListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return self.model.objects.filter(
-            Q(sent_friendships__friend=self.request.user)
-            & Q(sent_friendships__blocked_by=F("sent_friendships__user"))
-            | Q(accepted_friendships__user=self.request.user)
-            & Q(accepted_friendships__blocked_by=F("accepted_friendships__friend"))
-        )
+            Q(
+                sent_friendships__friend=self.request.user,
+                sent_friendships__blocked_by=F("sent_friendships__user"),
+            )
+            | Q(
+                accepted_friendships__user=self.request.user,
+                accepted_friendships__blocked_by=F("accepted_friendships__friend"),
+            )
+        ).distinct()
 
 
 class FriendSearchView(LoginRequiredMixin, ListView):
