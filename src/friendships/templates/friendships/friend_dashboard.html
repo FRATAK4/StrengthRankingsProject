@@ -1,10 +1,214 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Friends{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'common-home' %}">
+            <i class="fas fa-home me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">Friends & Connections</h1>
+    <p class="lead">Manage your fitness community and build connections</p>
+  </section>
+
+  <!-- Friends Section -->
+  <section class="section mb-5">
+    <div class="section-header">
+      <h3>Friends & Connections</h3>
+    </div>
+
+    <div class="row g-4">
+      <!-- My Friends -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_list' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-user-friends"></i>
+              </div>
+              <h5 class="card-title">My Friends</h5>
+              <p class="card-text">View and manage your friends list</p>
+              <span class="badge bg-secondary">Active connections</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Search Users -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_search' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <h5 class="card-title">Find Friends</h5>
+              <p class="card-text">Search and connect with new people</p>
+              <span class="badge bg-gradient-primary">Discover</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Friend Requests Section -->
+  <section class="section mb-5">
+    <div class="section-header">
+      <h3>Friend Requests</h3>
+    </div>
+
+    <div class="row g-4">
+      <!-- Sent Requests -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_request_sent_list' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-paper-plane"></i>
+              </div>
+              <h5 class="card-title">Sent Requests</h5>
+              <p class="card-text">View your pending friend requests</p>
+              <span class="badge bg-info">Outgoing</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Received Requests -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_request_received_list' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-inbox"></i>
+              </div>
+              <h5 class="card-title">Received Requests</h5>
+              <p class="card-text">Respond to friend requests</p>
+              <span class="badge bg-warning">Incoming</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Blocked Section -->
+  <section class="section mb-5">
+    <div class="section-header">
+      <h3>Privacy & Blocking</h3>
+    </div>
+
+    <div class="row g-4">
+      <!-- Blocked Users -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_blocked_list' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-user-slash"></i>
+              </div>
+              <h5 class="card-title">Blocked Users</h5>
+              <p class="card-text">Manage users you've blocked</p>
+              <span class="badge bg-danger">Restricted</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Blocked By -->
+      <div class="col-md-6">
+        <a href="{% url 'friend_blocked_by_list' %}" class="text-decoration-none">
+          <div class="card dashboard-card h-100">
+            <div class="card-body text-center">
+              <div class="icon">
+                <i class="fas fa-ban"></i>
+              </div>
+              <h5 class="card-title">Blocked By</h5>
+              <p class="card-text">Users who have blocked you</p>
+              <span class="badge bg-secondary">Limited access</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Tips Section -->
+  <section class="section mt-5">
+    <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+      <div class="card-body">
+        <h5 class="text-gradient mb-3">
+          <i class="fas fa-lightbulb me-2"></i>Building Your Network
+        </h5>
+        <div class="row">
+          <div class="col-md-6">
+            <ul class="small text-secondary mb-0">
+              <li>Connect with gym buddies to compare progress</li>
+              <li>Join groups to find training partners</li>
+              <li>Follow friends' workouts for motivation</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="small text-secondary mb-0">
+              <li>Share your achievements with friends</li>
+              <li>Create friendly competitions</li>
+              <li>Support each other's fitness journey</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <div class="text-center mt-4">
+    <a href="{% url 'friend_search' %}" class="btn btn-primary btn-lg">
+      <i class="fas fa-user-plus me-2"></i>Find New Friends
+    </a>
+  </div>
+</div>
+{% endblock %}
