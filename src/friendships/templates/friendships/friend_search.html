@@ -1,10 +1,342 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}
-    Friends
+{% block title %}Find Friends{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'friend_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>Friends Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">Find Friends</h1>
+    <p class="lead">Discover and connect with athletes in the StrengthRankings community</p>
+  </section>
 
+  <!-- Search Bar -->
+  <section class="mb-5">
+    <form method="get" action="{% url 'friend_search' %}" class="row g-3 justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="input-group input-group-lg">
+          <span class="input-group-text" style="background: var(--surface); border-color: var(--brand-primary);">
+            <i class="fas fa-search text-gradient"></i>
+          </span>
+          <input type="text"
+                 name="q"
+                 class="form-control"
+                 placeholder="Search by username, first name, or last name..."
+                 value="{{ request.GET.q }}"
+                 style="background: var(--surface); border-color: var(--brand-primary);">
+          <button type="submit" class="btn btn-primary">
+            Search
+          </button>
+        </div>
+      </div>
+    </form>
+
+    {% if request.GET.q %}
+    <div class="text-center mt-3">
+      <p class="text-secondary">
+        Showing results for: <strong class="text-primary">{{ request.GET.q }}</strong>
+        <a href="{% url 'friend_search' %}" class="btn btn-sm btn-outline-secondary ms-2">
+          <i class="fas fa-times me-1"></i>Clear
+        </a>
+      </p>
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Users List -->
+  <section class="section">
+    {% if users %}
+      <div class="row g-4">
+        {% for user_item in users %}
+        <div class="col-12">
+          <div class="card profile-card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- User Info -->
+                <div class="col-lg-8">
+                  <div class="d-flex align-items-start">
+                    <img src="{{ user_item.profile.image.url }}"
+                         alt="{{ user_item.username }}"
+                         class="rounded-circle me-3"
+                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+
+                    <div class="flex-grow-1">
+                      <h4 class="mb-1">
+                        {{ user_item.username }}
+                        {% if user_item.first_name or user_item.last_name %}
+                          <span class="text-secondary fw-normal">
+                            ({{ user_item.first_name }} {{ user_item.last_name }})
+                          </span>
+                        {% endif %}
+                      </h4>
+
+                      <!-- User Stats -->
+                      <div class="d-flex gap-3 flex-wrap mb-2">
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-weight me-1"></i>
+                          {{ user_item.profile.bodyweight }} kg
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-birthday-cake me-1"></i>
+                          {{ user_item.profile.age }} years
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-venus-mars me-1"></i>
+                          {{ user_item.profile.gender|title }}
+                        </span>
+                      </div>
+
+                      <!-- Connection Status -->
+                      <div class="text-muted small">
+                        {% if user_item.is_friend %}
+                          <i class="fas fa-check-circle text-success me-1"></i>
+                          <span class="text-success">Already friends</span>
+                        {% elif user_item.blocked %}
+                          <i class="fas fa-ban text-danger me-1"></i>
+                          <span class="text-danger">Blocked by you</span>
+                        {% elif user_item.blocked_by %}
+                          <i class="fas fa-ban text-warning me-1"></i>
+                          <span class="text-warning">You are blocked</span>
+                        {% elif user_item.request_sent_to %}
+                          <i class="fas fa-clock text-info me-1"></i>
+                          <span class="text-info">Request sent</span>
+                        {% elif user_item.request_sent_from %}
+                          <i class="fas fa-inbox text-warning me-1"></i>
+                          <span class="text-warning">Sent you a request</span>
+                        {% else %}
+                          <i class="fas fa-user-plus text-secondary me-1"></i>
+                          <span>Not connected</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                  {% if user_item.is_friend %}
+                    <!-- Already Friends -->
+                    <div>
+                      <span class="badge bg-success mb-2">
+                        <i class="fas fa-check me-1"></i>Friends
+                      </span>
+                      <div class="d-flex gap-2 justify-content-lg-end">
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                          <i class="fas fa-user me-1"></i>View Profile
+                        </a>
+                        <form method="post" action="{% url 'friend_kick' pk=user_item.pk %}"
+                              onsubmit="return confirm('Remove {{ user_item.username }} from friends?');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-user-times me-1"></i>Remove
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+
+                  {% elif user_item.blocked %}
+                    <!-- Blocked by You -->
+                    <div>
+                      <span class="badge bg-danger mb-2">
+                        <i class="fas fa-ban me-1"></i>Blocked
+                      </span>
+                      <form method="post" action="{% url 'friend_unblock' pk=user_item.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                          <i class="fas fa-unlock me-1"></i>Unblock
+                        </button>
+                      </form>
+                    </div>
+
+                  {% elif user_item.blocked_by %}
+                    <!-- Blocked You -->
+                    <div>
+                      <span class="badge bg-secondary mb-2">
+                        <i class="fas fa-ban me-1"></i>Blocked You
+                      </span>
+                      <button class="btn btn-secondary btn-sm" disabled>
+                        Cannot Connect
+                      </button>
+                    </div>
+
+                  {% elif user_item.request_sent_to %}
+                    <!-- Request Pending (You Sent) -->
+                    <div>
+                      <span class="badge bg-info mb-2">
+                        <i class="fas fa-clock me-1"></i>Pending
+                      </span>
+                      <div class="d-flex gap-2 justify-content-lg-end">
+                        <button class="btn btn-secondary btn-sm" disabled>
+                          Request Sent
+                        </button>
+                        <a href="{% url 'friend_request_sent_list' %}" class="btn btn-outline-secondary btn-sm">
+                          <i class="fas fa-list me-1"></i>View
+                        </a>
+                      </div>
+                    </div>
+
+                  {% elif user_item.request_sent_from %}
+                    <!-- Request Pending (They Sent) -->
+                    <div>
+                      <span class="badge bg-warning mb-2">
+                        <i class="fas fa-inbox me-1"></i>Request Received
+                      </span>
+                      <a href="{% url 'friend_request_received_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-reply me-1"></i>Respond
+                      </a>
+                    </div>
+
+                  {% else %}
+                    <!-- Can Send Request -->
+                    <a href="{% url 'friend_send_request' pk=user_item.pk %}" class="btn btn-primary">
+                      <i class="fas fa-user-plus me-2"></i>Send Friend Request
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link" style="background: var(--gradient-primary); border-color: var(--brand-primary);">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ num }}"
+                   style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.next_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-search text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        {% if request.GET.q %}
+          <h3 class="mb-3">No Users Found</h3>
+          <p class="text-secondary mb-4">
+            No users match your search for "{{ request.GET.q }}". Try different keywords.
+          </p>
+          <a href="{% url 'friend_search' %}" class="btn btn-primary">
+            <i class="fas fa-list me-2"></i>View All Users
+          </a>
+        {% else %}
+          <h3 class="mb-3">No Users Available</h3>
+          <p class="text-secondary mb-4">
+            Start searching to find other athletes in the community.
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Quick Stats -->
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="text-center">
+      <p class="text-secondary mb-3">Quick Navigation</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a href="{% url 'friend_list' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-user-friends me-1"></i>My Friends
+        </a>
+        <a href="{% url 'friend_request_sent_list' %}" class="btn btn-outline-accent btn-sm">
+          <i class="fas fa-paper-plane me-1"></i>Sent Requests
+        </a>
+        <a href="{% url 'friend_request_received_list' %}" class="btn btn-outline-accent btn-sm">
+          <i class="fas fa-inbox me-1"></i>Received Requests
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div class="toast show align-items-center text-white bg-{{ message.tags }} border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
 {% endblock %}

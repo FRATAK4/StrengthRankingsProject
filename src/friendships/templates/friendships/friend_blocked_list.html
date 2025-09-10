@@ -1,10 +1,287 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Blocked Users{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'friend_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>Friends Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-title">Blocked Users</h1>
+        <p class="text-secondary lead">Users you have blocked from contacting you</p>
+        {% if friends_blocked %}
+        <span class="badge bg-danger">
+          <i class="fas fa-ban me-1"></i>
+          {{ friends_blocked|length }} user{{ friends_blocked|length|pluralize }} blocked
+        </span>
+        {% endif %}
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{% url 'friend_list' %}" class="btn btn-outline-secondary">
+          <i class="fas fa-user-friends me-2"></i>View Friends
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy Notice -->
+  <div class="alert alert-danger mb-4" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+    <h6 class="alert-heading mb-2">
+      <i class="fas fa-shield-alt me-2"></i>Privacy & Blocking
+    </h6>
+    <p class="small mb-0">
+      Blocked users cannot send you friend requests, view your profile details, or interact with you in groups.
+      You can unblock users at any time to restore normal interaction.
+    </p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Blocked Users List -->
+  <section class="section">
+    {% if friends_blocked %}
+      <div class="row g-4">
+        {% for blocked_user in friends_blocked %}
+        <div class="col-12">
+          <div class="card profile-card" style="border-left: 4px solid var(--brand-danger); opacity: 0.9;">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- User Info -->
+                <div class="col-lg-8">
+                  <div class="d-flex align-items-start">
+                    <div class="position-relative">
+                      <img src="{{ blocked_user.profile.image.url }}"
+                           alt="{{ blocked_user.username }}"
+                           class="rounded-circle me-3"
+                           style="width: 80px; height: 80px; object-fit: cover; filter: grayscale(50%); opacity: 0.8;">
+                      <div class="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
+                           style="background: rgba(239, 68, 68, 0.3);">
+                        <i class="fas fa-ban text-danger" style="font-size: 2rem;"></i>
+                      </div>
+                    </div>
+
+                    <div class="flex-grow-1">
+                      <h4 class="mb-1">
+                        {{ blocked_user.username }}
+                        {% if blocked_user.first_name or blocked_user.last_name %}
+                          <span class="text-secondary fw-normal">
+                            ({{ blocked_user.first_name }} {{ blocked_user.last_name }})
+                          </span>
+                        {% endif %}
+                      </h4>
+
+                      <!-- Limited User Info -->
+                      <div class="d-flex gap-3 flex-wrap mb-2">
+                        <span class="badge bg-dark">
+                          <i class="fas fa-weight me-1"></i>
+                          {{ blocked_user.profile.bodyweight }} kg
+                        </span>
+                        <span class="badge bg-dark">
+                          <i class="fas fa-birthday-cake me-1"></i>
+                          {{ blocked_user.profile.age }} years
+                        </span>
+                        <span class="badge bg-dark">
+                          <i class="fas fa-venus-mars me-1"></i>
+                          {{ blocked_user.profile.gender|title }}
+                        </span>
+                      </div>
+
+                      <!-- Block Status -->
+                      <div class="text-danger small">
+                        <i class="fas fa-ban me-1"></i>
+                        <strong>Blocked</strong> - This user cannot interact with you
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                  <div class="d-flex flex-column gap-2">
+                    <span class="badge bg-danger mb-2">
+                      <i class="fas fa-user-slash me-1"></i>Blocked
+                    </span>
+
+                    <!-- Unblock Button -->
+                    <form method="post" action="{% url 'friend_unblock' pk=blocked_user.pk %}"
+                          onsubmit="return confirm('Unblock {{ blocked_user.username }}? They will be able to send you friend requests again.');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-success w-100">
+                        <i class="fas fa-unlock me-1"></i>Unblock User
+                      </button>
+                    </form>
+
+                    <!-- View Limited Profile -->
+                    <button class="btn btn-outline-secondary" disabled>
+                      <i class="fas fa-user me-1"></i>Profile Hidden
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link" style="background: var(--gradient-primary); border-color: var(--brand-primary);">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}"
+                   style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-user-slash text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="mb-3">No Blocked Users</h3>
+        <p class="text-secondary mb-4">
+          You haven't blocked any users. Blocking prevents unwanted interactions while maintaining your privacy.
+        </p>
+        <a href="{% url 'friend_list' %}" class="btn btn-primary">
+          <i class="fas fa-user-friends me-2"></i>View Your Friends
+        </a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Info Section -->
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="card" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2);">
+      <div class="card-body">
+        <h5 class="text-danger mb-3">
+          <i class="fas fa-info-circle me-2"></i>About Blocking
+        </h5>
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="text-gradient">What blocking does:</h6>
+            <ul class="small text-secondary mb-0">
+              <li>Prevents friend requests from this user</li>
+              <li>Hides your detailed profile from them</li>
+              <li>Removes existing friendship if any</li>
+              <li>Blocks all direct interactions</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-gradient">After unblocking:</h6>
+            <ul class="small text-secondary mb-0">
+              <li>User can send friend requests again</li>
+              <li>Previous friendship is not restored</li>
+              <li>You'll need to reconnect if desired</li>
+              <li>No notification is sent to them</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <div class="text-center mt-4">
+    <p class="text-secondary mb-3">Quick Navigation</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <a href="{% url 'friend_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-th-large me-1"></i>Friends Dashboard
+      </a>
+      <a href="{% url 'friend_blocked_by_list' %}" class="btn btn-outline-accent btn-sm">
+        <i class="fas fa-ban me-1"></i>Blocked By
+      </a>
+      <a href="{% url 'friend_search' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-search me-1"></i>Find Friends
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div class="toast show align-items-center text-white bg-{{ message.tags }} border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

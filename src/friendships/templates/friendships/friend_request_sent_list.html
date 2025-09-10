@@ -1,10 +1,266 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Sent Friend Requests{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'friend_dashboard' %}">
+            <i class="fas fa-arrow-left me-1"></i>Friends Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'common-home' %}"><i class="fas fa-home me-2"></i>Dashboard</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-title">Sent Friend Requests</h1>
+        <p class="text-secondary lead">Pending friend requests you've sent to other users</p>
+        {% if requests_sent %}
+        <span class="badge bg-info">
+          <i class="fas fa-clock me-1"></i>
+          {{ requests_sent|length }} pending request{{ requests_sent|length|pluralize }}
+        </span>
+        {% endif %}
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a href="{% url 'friend_search' %}" class="btn btn-primary">
+          <i class="fas fa-user-plus me-2"></i>Find More Friends
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Sent Requests List -->
+  <section class="section">
+    {% if requests_sent %}
+      <div class="row g-4">
+        {% for request in requests_sent %}
+        <div class="col-12">
+          <div class="card profile-card">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Receiver Info -->
+                <div class="col-lg-8">
+                  <div class="d-flex align-items-start">
+                    <img src="{{ request.receiver.profile.image.url }}"
+                         alt="{{ request.receiver.username }}"
+                         class="rounded-circle me-3"
+                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+
+                    <div class="flex-grow-1">
+                      <h4 class="mb-1">
+                        {{ request.receiver.username }}
+                        {% if request.receiver.first_name or request.receiver.last_name %}
+                          <span class="text-secondary fw-normal">
+                            ({{ request.receiver.first_name }} {{ request.receiver.last_name }})
+                          </span>
+                        {% endif %}
+                      </h4>
+
+                      <!-- Receiver Stats -->
+                      <div class="d-flex gap-3 flex-wrap mb-2">
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-weight me-1"></i>
+                          {{ request.receiver.profile.bodyweight }} kg
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-birthday-cake me-1"></i>
+                          {{ request.receiver.profile.age }} years
+                        </span>
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-venus-mars me-1"></i>
+                          {{ request.receiver.profile.gender|title }}
+                        </span>
+                      </div>
+
+                      <!-- Request Info -->
+                      <div class="mb-2">
+                        <span class="text-muted small">
+                          <i class="fas fa-clock me-1"></i>
+                          Sent {{ request.sent_at|timesince }} ago
+                        </span>
+                      </div>
+
+                      <!-- Message Preview -->
+                      {% if request.message %}
+                      <div class="p-2 rounded" style="background: rgba(255, 255, 255, 0.05); border-left: 3px solid var(--brand-primary);">
+                        <small class="text-secondary">
+                          <i class="fas fa-comment me-1"></i>
+                          <strong>Your message:</strong> {{ request.message|truncatechars:100 }}
+                        </small>
+                      </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                  <div class="d-flex flex-column gap-2">
+                    <span class="badge bg-info mb-2">
+                      <i class="fas fa-hourglass-half me-1"></i>Waiting for response
+                    </span>
+
+                    <form method="post" action="{% url 'friend_request_cancel' pk=request.pk %}"
+                          onsubmit="return confirm('Cancel friend request to {{ request.receiver.username }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="fas fa-times me-1"></i>Cancel Request
+                      </button>
+                    </form>
+
+                    <a href="#" class="btn btn-outline-secondary">
+                      <i class="fas fa-user me-1"></i>View Profile
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link" style="background: var(--gradient-primary); border-color: var(--brand-primary);">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}"
+                   style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-paper-plane text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="mb-3">No Pending Requests</h3>
+        <p class="text-secondary mb-4">
+          You haven't sent any friend requests yet, or all your requests have been responded to.
+        </p>
+        <a href="{% url 'friend_search' %}" class="btn btn-primary btn-lg">
+          <i class="fas fa-search me-2"></i>Find Friends to Connect
+        </a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Info Section -->
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="card" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+      <div class="card-body">
+        <h5 class="text-gradient mb-3">
+          <i class="fas fa-info-circle me-2"></i>About Friend Requests
+        </h5>
+        <ul class="small text-secondary mb-0">
+          <li>Friend requests remain pending until the receiver accepts or declines</li>
+          <li>You can cancel a request at any time before it's responded to</li>
+          <li>Once accepted, you'll be able to see each other's progress and compete</li>
+          <li>If declined, you can send another request later</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <div class="text-center mt-4">
+    <p class="text-secondary mb-3">Quick Navigation</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <a href="{% url 'friend_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-th-large me-1"></i>Friends Dashboard
+      </a>
+      <a href="{% url 'friend_request_received_list' %}" class="btn btn-outline-accent btn-sm">
+        <i class="fas fa-inbox me-1"></i>Received Requests
+      </a>
+      <a href="{% url 'friend_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-user-friends me-1"></i>My Friends
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div class="toast show align-items-center text-white bg-{{ message.tags }} border-0" role="alert">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}
