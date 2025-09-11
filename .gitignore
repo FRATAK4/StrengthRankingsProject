@@ -175,3 +175,5 @@ cython_debug/
 
 /src/common/media/
 !src/common/media/default.jpg
+
+/todo.txt
