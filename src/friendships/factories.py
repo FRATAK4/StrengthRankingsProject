@@ -4,7 +4,7 @@ import factory.django
 from django.utils import timezone
 from faker import Faker
 
-from .models import Friendship
+from .models import Friendship, FriendRequest
 from accounts.factories import UserFactory
 
 fake = Faker()
@@ -61,3 +61,30 @@ class FriendshipFactory(factory.django.DjangoModelFactory):
         if self.blocked_at:
             return random.choice([self.user, self.friend])
         return None
+
+
+class FriendRequestFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FriendRequest
+
+    message = factory.Faker("text", max_nb_chars=500)
+    status = factory.Iterator(["pending", "accepted", "declined"])
+
+    @factory.lazy_attribute
+    def sent_at(self):
+        match self.status:
+            case "pending":
+                return timezone.now()
+            case "accepted" | "declined":
+                return fake.date_between(start_date="-1m", end_date="today")
+
+    @factory.lazy_attribute
+    def responded_at(self):
+        match self.status:
+            case "pending":
+                return None
+            case "accepted" | "declined":
+                return timezone.now()
+
+    sender = factory.SubFactory(UserFactory)
+    receiver = factory.SubFactory(UserFactory)
