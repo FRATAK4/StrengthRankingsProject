@@ -64,34 +64,41 @@ class FriendKickView(LoginRequiredMixin, View):
 class FriendBlockView(LoginRequiredMixin, View):
     @transaction.atomic
     def post(self, request, pk):
-        friend = get_object_or_404(User, pk=pk)
+        user_to_block = get_object_or_404(User, pk=pk)
+
+        if request.user == user_to_block:
+            messages.error(request, "You can't block yourself!")
+            return redirect("friend_list")
+
         friendship = Friendship.objects.filter(
-            Q(
-                status__in=[
-                    Friendship.FriendshipStatus.ACTIVE,
-                    Friendship.FriendshipStatus.KICKED,
-                ]
-            ),
-            Q(user=request.user, friend=friend) | Q(user=friend, friend=request.user),
+            Q(user=request.user, friend=user_to_block)
+            | Q(user=user_to_block, friend=request.user)
         ).first()
 
         if not friendship:
+            Friendship.objects.create(
+                status=Friendship.FriendshipStatus.BLOCKED,
+                user=request.user,
+                friend=user_to_block,
+                blocked_at=timezone.now(),
+                blocked_by=request.user,
+            )
+        elif friendship.status == Friendship.FriendshipStatus.BLOCKED:
             messages.error(request, "You can't block this user!")
             return redirect("friend_list")
-
-        Friendship.objects.filter(pk=friendship.pk).update(
-            status=Friendship.FriendshipStatus.BLOCKED,
-            blocked_at=timezone.now(),
-            blocked_by=request.user,
-        )
+        else:
+            friendship.status = Friendship.FriendshipStatus.BLOCKED
+            friendship.blocked_at = timezone.now()
+            friendship.blocked_by = request.user
+            friendship.save()
 
         FriendRequest.objects.filter(
-            Q(sender=request.user, receiver=friend)
-            | Q(sender=friend, receiver=request.user),
+            Q(sender=request.user, receiver=user_to_block)
+            | Q(sender=user_to_block, receiver=request.user),
             status=FriendRequest.RequestStatus.PENDING,
         ).update(status=FriendRequest.RequestStatus.DECLINED)
 
-        messages.success(request, f"You successfully blocked {friend.username}!")
+        messages.success(request, f"You successfully blocked {user_to_block.username}!")
         return redirect("friend_list")
 
 
