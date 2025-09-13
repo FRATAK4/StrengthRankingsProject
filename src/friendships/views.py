@@ -153,16 +153,24 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
         request_received.status = FriendRequest.RequestStatus.ACCEPTED
         request_received.save()
 
-        friendship, created = Friendship.objects.get_or_create(
-            user=request_received.sender,
-            friend=request.user,
-            defaults={"status": Friendship.FriendshipStatus.ACTIVE},
-        )
-        if not created:
+        friendship = Friendship.objects.filter(
+            Q(user=request_received.sender, friend=request_received.receiver)
+            | Q(user=request_received.receiver, friend=request_received.sender)
+        ).first()
+
+        if not friendship:
+            Friendship.objects.create(
+                status=Friendship.FriendshipStatus.ACTIVE,
+                user=request_received.sender,
+                friend=request_received.receiver,
+            )
+        else:
             friendship.status = Friendship.FriendshipStatus.ACTIVE
             friendship.created_at = timezone.now()
             friendship.kicked_at = None
             friendship.blocked_at = None
+            friendship.user = request_received.sender
+            friendship.friend = request_received.receiver
             friendship.kicked_by = None
             friendship.blocked_by = None
             friendship.save()
