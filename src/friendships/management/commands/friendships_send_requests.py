@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 from django.contrib.auth.models import User
 
-from src.friendships.factories import FriendSendRequestFactory
+from friendships.factories import FriendSendRequestFactory
 
 
 class Command(BaseCommand):

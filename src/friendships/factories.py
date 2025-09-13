@@ -2,6 +2,7 @@ import random
 
 import factory.django
 from django.contrib.auth.models import User
+from django.db.models import Q, OuterRef, Exists
 from django.utils import timezone
 from faker import Faker
 
@@ -93,8 +94,33 @@ class FriendRequestFactory(factory.django.DjangoModelFactory):
 
 class FriendSendRequestFactory(FriendRequestFactory):
     status = "pending"
-    sender = factory.Iterator([User.objects.all()])
+    sender = factory.Iterator(User.objects.all())
 
     @factory.lazy_attribute
     def receiver(self):
-        return random.choice(User.objects.all().exclude(self.sender))
+        has_friendship = Friendship.objects.filter(
+            Q(
+                status__in=[
+                    Friendship.FriendshipStatus.BLOCKED,
+                    Friendship.FriendshipStatus.ACTIVE,
+                ]
+            ),
+            Q(user=self.sender, friend=OuterRef("pk"))
+            | Q(user=OuterRef("pk"), friend=self.sender),
+        )
+
+        has_request = FriendRequest.objects.filter(
+            Q(status=FriendRequest.RequestStatus.PENDING),
+            Q(sender=self.sender, receiver=OuterRef("pk"))
+            | Q(sender=OuterRef("pk"), receiver=self.sender),
+        )
+
+        users_to_send = (
+            User.objects.exclude(
+                pk=self.sender.pk,
+            )
+            .exclude(Exists(has_friendship))
+            .exclude(Exists(has_request))
+        )
+
+        return random.choice(users_to_send)

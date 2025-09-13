@@ -15,9 +15,9 @@ class Command(BaseCommand):
         self.stdout.write(f"Sending {count} request(s) from each user...")
 
         for user in users:
-            self._send_requests(user, count)
+            self._send_requests(count, user)
 
         self.stdout.write(f"Successfully sent {count} request(s) from each user!")
 
-    def _send_requests(self, user, count):
+    def _send_requests(self, count, user):
         GroupSendRequestFactory.create_batch(count, user=user)
