@@ -96,14 +96,18 @@
                 <!-- User Info -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <img src="{{ user_item.profile.image.url }}"
-                         alt="{{ user_item.username }}"
-                         class="rounded-circle me-3"
-                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+                    <a href="{% url 'accounts-user_profile' username=user_item.username %}">
+                      <img src="{{ user_item.profile.image.url }}"
+                           alt="{{ user_item.username }}"
+                           class="rounded-circle me-3"
+                           style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary); cursor: pointer;">
+                    </a>
 
                     <div class="flex-grow-1">
                       <h4 class="mb-1">
-                        {{ user_item.username }}
+                        <a href="{% url 'accounts-user_profile' username=user_item.username %}" class="text-decoration-none text-primary">
+                          {{ user_item.username }}
+                        </a>
                         {% if user_item.first_name or user_item.last_name %}
                           <span class="text-secondary fw-normal">
                             ({{ user_item.first_name }} {{ user_item.last_name }})
@@ -161,15 +165,21 @@
                       <span class="badge bg-success mb-2">
                         <i class="fas fa-check me-1"></i>Friends
                       </span>
-                      <div class="d-flex gap-2 justify-content-lg-end">
-                        <a href="#" class="btn btn-outline-secondary btn-sm">
-                          <i class="fas fa-user me-1"></i>View Profile
-                        </a>
+                      <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
                         <form method="post" action="{% url 'friend_kick' pk=user_item.pk %}"
-                              onsubmit="return confirm('Remove {{ user_item.username }} from friends?');">
+                              onsubmit="return confirm('Remove {{ user_item.username }} from friends?');"
+                              class="d-inline">
                           {% csrf_token %}
                           <button type="submit" class="btn btn-outline-warning btn-sm">
                             <i class="fas fa-user-times me-1"></i>Remove
+                          </button>
+                        </form>
+                        <form method="post" action="{% url 'friend_block' pk=user_item.pk %}"
+                              onsubmit="return confirm('Block {{ user_item.username }}? This will remove them from your friends and prevent future contact.');"
+                              class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-ban me-1"></i>Block
                           </button>
                         </form>
                       </div>
@@ -206,13 +216,18 @@
                       <span class="badge bg-info mb-2">
                         <i class="fas fa-clock me-1"></i>Pending
                       </span>
-                      <div class="d-flex gap-2 justify-content-lg-end">
+                      <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
                         <button class="btn btn-secondary btn-sm" disabled>
                           Request Sent
                         </button>
-                        <a href="{% url 'friend_request_sent_list' %}" class="btn btn-outline-secondary btn-sm">
-                          <i class="fas fa-list me-1"></i>View
-                        </a>
+                        <form method="post" action="{% url 'friend_block' pk=user_item.pk %}"
+                              onsubmit="return confirm('Block {{ user_item.username }}? This will cancel your friend request.');"
+                              class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-ban me-1"></i>Block
+                          </button>
+                        </form>
                       </div>
                     </div>
 
@@ -222,16 +237,36 @@
                       <span class="badge bg-warning mb-2">
                         <i class="fas fa-inbox me-1"></i>Request Received
                       </span>
-                      <a href="{% url 'friend_request_received_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-reply me-1"></i>Respond
-                      </a>
+                      <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                        <a href="{% url 'friend_request_received_list' %}" class="btn btn-primary btn-sm">
+                          <i class="fas fa-reply me-1"></i>Respond
+                        </a>
+                        <form method="post" action="{% url 'friend_block' pk=user_item.pk %}"
+                              onsubmit="return confirm('Block {{ user_item.username }}? This will decline their friend request.');"
+                              class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-ban me-1"></i>Block
+                          </button>
+                        </form>
+                      </div>
                     </div>
 
                   {% else %}
                     <!-- Can Send Request -->
-                    <a href="{% url 'friend_send_request' pk=user_item.pk %}" class="btn btn-primary">
-                      <i class="fas fa-user-plus me-2"></i>Send Friend Request
-                    </a>
+                    <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                      <a href="{% url 'friend_send_request' pk=user_item.pk %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Send Request
+                      </a>
+                      <form method="post" action="{% url 'friend_block' pk=user_item.pk %}"
+                            onsubmit="return confirm('Block {{ user_item.username }}? They will not be able to send you friend requests.');"
+                            class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                          <i class="fas fa-ban me-1"></i>Block
+                        </button>
+                      </form>
+                    </div>
                   {% endif %}
                 </div>
               </div>

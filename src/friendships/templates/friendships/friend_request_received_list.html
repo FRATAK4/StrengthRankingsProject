@@ -78,14 +78,18 @@
                 <!-- Sender Info -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <img src="{{ request.sender.profile.image.url }}"
-                         alt="{{ request.sender.username }}"
-                         class="rounded-circle me-3"
-                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+                    <a href="{% url 'accounts-user_profile' username=request.sender.username %}">
+                      <img src="{{ request.sender.profile.image.url }}"
+                           alt="{{ request.sender.username }}"
+                           class="rounded-circle me-3"
+                           style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary); cursor: pointer;">
+                    </a>
 
                     <div class="flex-grow-1">
                       <h4 class="mb-1">
-                        {{ request.sender.username }}
+                        <a href="{% url 'accounts-user_profile' username=request.sender.username %}" class="text-decoration-none text-primary">
+                          {{ request.sender.username }}
+                        </a>
                         {% if request.sender.first_name or request.sender.last_name %}
                           <span class="text-secondary fw-normal">
                             ({{ request.sender.first_name }} {{ request.sender.last_name }})
@@ -159,11 +163,6 @@
                         <i class="fas fa-times me-1"></i>Decline Request
                       </button>
                     </form>
-
-                    <!-- View Profile -->
-                    <a href="#" class="btn btn-outline-secondary">
-                      <i class="fas fa-user me-1"></i>View Profile
-                    </a>
                   </div>
                 </div>
               </div>

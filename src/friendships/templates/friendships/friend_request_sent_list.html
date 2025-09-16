@@ -78,14 +78,18 @@
                 <!-- Receiver Info -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <img src="{{ request.receiver.profile.image.url }}"
-                         alt="{{ request.receiver.username }}"
-                         class="rounded-circle me-3"
-                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+                    <a href="{% url 'accounts-user_profile' username=request.receiver.username %}">
+                      <img src="{{ request.receiver.profile.image.url }}"
+                           alt="{{ request.receiver.username }}"
+                           class="rounded-circle me-3"
+                           style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary); cursor: pointer;">
+                    </a>
 
                     <div class="flex-grow-1">
                       <h4 class="mb-1">
-                        {{ request.receiver.username }}
+                        <a href="{% url 'accounts-user_profile' username=request.receiver.username %}" class="text-decoration-none text-primary">
+                          {{ request.receiver.username }}
+                        </a>
                         {% if request.receiver.first_name or request.receiver.last_name %}
                           <span class="text-secondary fw-normal">
                             ({{ request.receiver.first_name }} {{ request.receiver.last_name }})
@@ -144,10 +148,6 @@
                         <i class="fas fa-times me-1"></i>Cancel Request
                       </button>
                     </form>
-
-                    <a href="#" class="btn btn-outline-secondary">
-                      <i class="fas fa-user me-1"></i>View Profile
-                    </a>
                   </div>
                 </div>
               </div>

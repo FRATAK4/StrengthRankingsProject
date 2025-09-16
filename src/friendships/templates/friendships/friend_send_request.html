@@ -57,14 +57,18 @@
         <div class="card profile-card mb-4">
           <div class="card-body">
             <div class="d-flex align-items-center">
-              <img src="{{ friend.profile.image.url }}"
-                   alt="{{ friend.username }}"
-                   class="rounded-circle me-3"
-                   style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--brand-primary);">
+              <a href="{% url 'accounts-user_profile' username=friend.username %}">
+                <img src="{{ friend.profile.image.url }}"
+                     alt="{{ friend.username }}"
+                     class="rounded-circle me-3"
+                     style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--brand-primary); cursor: pointer;">
+              </a>
 
               <div class="flex-grow-1">
                 <h3 class="mb-1">
-                  {{ friend.username }}
+                  <a href="{% url 'accounts-user_profile' username=friend.username %}" class="text-decoration-none text-primary">
+                    {{ friend.username }}
+                  </a>
                 </h3>
                 {% if friend.first_name or friend.last_name %}
                   <p class="text-secondary mb-2">

@@ -72,14 +72,18 @@
                 <!-- Friend Info -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <img src="{{ friend.profile.image.url }}"
-                         alt="{{ friend.username }}"
-                         class="rounded-circle me-3"
-                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary);">
+                    <a href="{% url 'accounts-user_profile' username=friend.username %}">
+                      <img src="{{ friend.profile.image.url }}"
+                           alt="{{ friend.username }}"
+                           class="rounded-circle me-3"
+                           style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--brand-primary); cursor: pointer;">
+                    </a>
 
                     <div class="flex-grow-1">
                       <h4 class="mb-1">
-                        {{ friend.username }}
+                        <a href="{% url 'accounts-user_profile' username=friend.username %}" class="text-decoration-none text-primary">
+                          {{ friend.username }}
+                        </a>
                         {% if friend.first_name or friend.last_name %}
                           <span class="text-secondary fw-normal">
                             ({{ friend.first_name }} {{ friend.last_name }})
@@ -115,39 +119,27 @@
                 <!-- Action Buttons -->
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                   <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
-                    <a href="#" class="btn btn-outline-secondary btn-sm">
-                      <i class="fas fa-user me-1"></i>View Profile
-                    </a>
                     <a href="#" class="btn btn-outline-accent btn-sm">
                       <i class="fas fa-chart-line me-1"></i>View Stats
                     </a>
 
-                    <!-- Dropdown for more actions -->
-                    <div class="dropdown">
-                      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-coreui-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v"></i>
+                    <form method="post" action="{% url 'friend_kick' pk=friend.pk %}"
+                          onsubmit="return confirm('Remove {{ friend.username }} from your friends?');"
+                          class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-user-times me-1"></i>Remove
                       </button>
-                      <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                          <form method="post" action="{% url 'friend_kick' pk=friend.pk %}"
-                                onsubmit="return confirm('Remove {{ friend.username }} from your friends?');">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-warning">
-                              <i class="fas fa-user-times me-2"></i>Remove Friend
-                            </button>
-                          </form>
-                        </li>
-                        <li>
-                          <form method="post" action="{% url 'friend_block' pk=friend.pk %}"
-                                onsubmit="return confirm('Block {{ friend.username }}? This will remove them from your friends and prevent future contact.');">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger">
-                              <i class="fas fa-ban me-2"></i>Block User
-                            </button>
-                          </form>
-                        </li>
-                      </ul>
-                    </div>
+                    </form>
+
+                    <form method="post" action="{% url 'friend_block' pk=friend.pk %}"
+                          onsubmit="return confirm('Block {{ friend.username }}? This will remove them from your friends and prevent future contact.');"
+                          class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-ban me-1"></i>Block
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>

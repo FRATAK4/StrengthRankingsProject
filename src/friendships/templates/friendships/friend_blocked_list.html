@@ -89,20 +89,21 @@
                 <!-- User Info -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <div class="position-relative">
+                    <a href="{% url 'accounts-user_profile' username=blocked_user.username %}" class="position-relative me-3">
                       <img src="{{ blocked_user.profile.image.url }}"
                            alt="{{ blocked_user.username }}"
-                           class="rounded-circle me-3"
-                           style="width: 80px; height: 80px; object-fit: cover; filter: grayscale(50%); opacity: 0.8;">
-                      <div class="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
-                           style="background: rgba(239, 68, 68, 0.3);">
-                        <i class="fas fa-ban text-danger" style="font-size: 2rem;"></i>
+                           class="rounded-circle"
+                           style="width: 80px; height: 80px; object-fit: cover; filter: grayscale(50%); opacity: 0.8; cursor: pointer;">
+                      <div class="position-absolute top-50 start-50 translate-middle">
+                        <i class="fas fa-ban text-danger" style="font-size: 2.5rem; filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));"></i>
                       </div>
-                    </div>
+                    </a>
 
                     <div class="flex-grow-1">
                       <h4 class="mb-1">
-                        {{ blocked_user.username }}
+                        <a href="{% url 'accounts-user_profile' username=blocked_user.username %}" class="text-decoration-none text-danger">
+                          {{ blocked_user.username }}
+                        </a>
                         {% if blocked_user.first_name or blocked_user.last_name %}
                           <span class="text-secondary fw-normal">
                             ({{ blocked_user.first_name }} {{ blocked_user.last_name }})
@@ -150,11 +151,6 @@
                         <i class="fas fa-unlock me-1"></i>Unblock User
                       </button>
                     </form>
-
-                    <!-- View Limited Profile -->
-                    <button class="btn btn-outline-secondary" disabled>
-                      <i class="fas fa-user me-1"></i>Profile Hidden
-                    </button>
                   </div>
                 </div>
               </div>
