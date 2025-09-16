@@ -1,5 +1,6 @@
 from django.core.management import BaseCommand
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from friendships.models import FriendRequest, Friendship
@@ -15,22 +16,34 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def _accept_requests(self):
-        requests = FriendRequest.objects.filter(
-            status=FriendRequest.RequestStatus.PENDING
-        ).update(status=FriendRequest.RequestStatus.ACCEPTED)
+        requests = list(
+            FriendRequest.objects.filter(status=FriendRequest.RequestStatus.PENDING)
+        )
+
+        FriendRequest.objects.filter(status=FriendRequest.RequestStatus.PENDING).update(
+            status=FriendRequest.RequestStatus.ACCEPTED
+        )
 
         for request in requests:
-            friendship, created = Friendship.objects.get_or_create(
-                user=request.sender,
-                friend=request.receiver,
-                defaults={"status": Friendship.FriendshipStatus.ACTIVE},
-            )
+            friendship = Friendship.objects.filter(
+                Q(user=request.sender, friend=request.receiver)
+                | Q(user=request.receiver, friend=request.sender),
+                status=Friendship.FriendshipStatus.KICKED,
+            ).first()
 
-            if not created:
+            if not friendship:
+                Friendship.objects.create(
+                    status=Friendship.FriendshipStatus.ACTIVE,
+                    user=request.sender,
+                    friend=request.receiver,
+                )
+            else:
                 friendship.status = Friendship.FriendshipStatus.ACTIVE
                 friendship.created_at = timezone.now()
                 friendship.kicked_at = None
                 friendship.blocked_at = None
+                friendship.user = request.sender
+                friendship.friend = request.receiver
                 friendship.kicked_by = None
                 friendship.blocked_by = None
                 friendship.save()

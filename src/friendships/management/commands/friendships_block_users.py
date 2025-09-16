@@ -15,30 +15,39 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         count = options["count"]
-        users = User.objects.all()
+        users = User.objects.select_related("profile")
 
         self.stdout.write(f"Blocking {count} user(s) for each user...")
 
         for user in users:
-            self._block_users(count, user)
+            nb_blocked_users = self._block_users(count, user)
+            self.stdout.write(
+                f"Successfully blocked {nb_blocked_users} user(s) from {user.username}"
+            )
 
-        self.stdout.write(f"Successfully blocked {count} user(s) for each user...")
+        self.stdout.write(f"Successfully blocked user(s)!")
 
     @transaction.atomic
     def _block_users(self, count, user):
-        users_to_block = User.objects.exclude(
-            Q(
-                sent_friendships__friend=user,
-                sent_friendships__status=Friendship.FriendshipStatus.BLOCKED,
+        available_users = list(
+            User.objects.exclude(
+                Q(
+                    sent_friendships__friend=user,
+                    sent_friendships__status=Friendship.FriendshipStatus.BLOCKED,
+                )
+                | Q(
+                    accepted_friendships__user=user,
+                    accepted_friendships__status=Friendship.FriendshipStatus.BLOCKED,
+                )
+                | Q(pk=user.pk)
             )
-            | Q(
-                accepted_friendships__user=user,
-                accepted_friendships__status=Friendship.FriendshipStatus.BLOCKED,
-            )
-            | Q(pk=user.pk)
         )
-        for _ in range(count):
-            user_to_block = random.choice(users_to_block)
+
+        users_to_block = random.sample(
+            available_users, min(count, len(available_users))
+        )
+
+        for user_to_block in users_to_block:
             friendship = Friendship.objects.filter(
                 Q(user=user, friend=user_to_block) | Q(user=user_to_block, friend=user)
             ).first()
@@ -56,3 +65,5 @@ class Command(BaseCommand):
                 friendship.blocked_at = timezone.now()
                 friendship.blocked_by = user
                 friendship.save()
+
+        return len(users_to_block)

@@ -20,7 +20,7 @@ class Command(BaseCommand):
             status=Friendship.FriendshipStatus.ACTIVE
         )
         for friendship in friendships:
-            friendship.status = (Friendship.FriendshipStatus.KICKED,)
-            friendship.kicked_at = (timezone.now(),)
-            friendship.kicked_by = random.choice([F("user"), F("friend")])
+            friendship.status = Friendship.FriendshipStatus.KICKED
+            friendship.kicked_at = timezone.now()
+            friendship.kicked_by = random.choice([friendship.user, friendship.friend])
             friendship.save()
