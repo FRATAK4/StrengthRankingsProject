@@ -89,14 +89,13 @@
                 <!-- User Info (Limited) -->
                 <div class="col-lg-8">
                   <div class="d-flex align-items-start">
-                    <div class="position-relative">
+                    <div class="position-relative me-3">
                       <img src="{{ blocking_user.profile.image.url }}"
                            alt="{{ blocking_user.username }}"
-                           class="rounded-circle me-3"
+                           class="rounded-circle"
                            style="width: 80px; height: 80px; object-fit: cover; filter: grayscale(100%); opacity: 0.5;">
-                      <div class="position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex align-items-center justify-content-center"
-                           style="background: rgba(0, 0, 0, 0.5);">
-                        <i class="fas fa-lock text-muted" style="font-size: 2rem;"></i>
+                      <div class="position-absolute top-50 start-50 translate-middle">
+                        <i class="fas fa-lock text-muted" style="font-size: 2.5rem; filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));"></i>
                       </div>
                     </div>
 
@@ -137,10 +136,6 @@
                     <!-- All buttons disabled -->
                     <button class="btn btn-secondary btn-sm" disabled>
                       <i class="fas fa-ban me-1"></i>Cannot Interact
-                    </button>
-
-                    <button class="btn btn-outline-secondary btn-sm" disabled>
-                      <i class="fas fa-user-slash me-1"></i>Profile Blocked
                     </button>
                   </div>
                 </div>
@@ -272,12 +267,12 @@
 {% if messages %}
   {% for message in messages %}
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-      <div class="toast show align-items-center text-white bg-{{ message.tags }} border-0" role="alert">
+      <div id="toast-{{ forloop.counter }}" class="toast show align-items-center text-white bg-{{ message.tags }} border-0" role="alert">
         <div class="d-flex">
           <div class="toast-body">
             {{ message }}
           </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('toast-{{ forloop.counter }}').style.display='none'"></button>
         </div>
       </div>
     </div>
