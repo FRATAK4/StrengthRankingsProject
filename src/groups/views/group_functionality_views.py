@@ -71,7 +71,8 @@ class GroupUserKickView(LoginRequiredMixin, View):
         membership.kicked_at = timezone.now()
         membership.save()
 
-        return redirect("group_user_list", pk=pk)
+        url = reverse_lazy("group_user_list", kwargs={"pk": pk}) + "?host_view=true"
+        return redirect(url)
 
 
 class GroupUserBlockView(LoginRequiredMixin, View):
@@ -87,7 +88,8 @@ class GroupUserBlockView(LoginRequiredMixin, View):
         membership.blocked_at = timezone.now()
         membership.save()
 
-        return redirect("group_user_list", pk=pk)
+        url = reverse_lazy("group_user_list", kwargs={"pk": pk}) + "?host_view=true"
+        return redirect(url)
 
 
 class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
