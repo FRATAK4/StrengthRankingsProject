@@ -19,6 +19,7 @@ from .views.group_functionality_views import (
     GroupUserBlockView,
     GroupRankingsView,
     GroupBlockedUserListView,
+    GroupUnblockUserView,
 )
 
 urlpatterns = [
@@ -42,6 +43,11 @@ urlpatterns = [
         "<int:pk>/blocked_users/",
         GroupBlockedUserListView.as_view(),
         name="group_user_blocked_list",
+    ),
+    path(
+        "<int:pk>/blocked_users/<int:user_pk>/",
+        GroupUnblockUserView.as_view(),
+        name="group_user_unblock",
     ),
     path(
         "<int:pk>/rankings/",

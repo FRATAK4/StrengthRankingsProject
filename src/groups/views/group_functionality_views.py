@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
 from django.db.models import Case, When, BooleanField, Exists, OuterRef
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -169,6 +170,12 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
     def test_func(self):
         return self.request.user == self.group.admin_user
 
+    def handle_no_permission(self):
+        messages.error(
+            self.request, "You don't have permission to block users in this group!"
+        )
+        return redirect("group_detail", pk=self.group.pk)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["group"] = self.group
@@ -180,6 +187,32 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
             group_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
             group_memberships__group=self.group,
         ).select_related("profile")
+
+
+class GroupUnblockUserView(LoginRequiredMixin, View):
+    def post(self, request, pk, user_pk):
+        group = get_object_or_404(Group, pk=pk)
+        user_to_unblock = get_object_or_404(User, pk=user_pk)
+
+        if request.user != group.admin_user:
+            messages.error(
+                request, "You don't have permission to block users in this group!"
+            )
+            return redirect("group_detail", kwargs={"pk": pk})
+
+        GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.BLOCKED,
+            user=user_to_unblock,
+            group=group,
+        ).update(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            started_at=timezone.now(),
+            kicked_at=None,
+            blocked_at=None,
+        )
+
+        messages.success(request, f"Successfully unblocked {user_to_unblock.username}!")
+        return redirect("group_blocked_user_list", pk=pk)
 
 
 class GroupRankingsView(TemplateView):
