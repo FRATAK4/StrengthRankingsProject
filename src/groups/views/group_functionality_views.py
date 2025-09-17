@@ -157,6 +157,31 @@ class GroupDeclineRequestView(LoginRequiredMixin, View):
         return redirect("group_request_list", pk=pk)
 
 
+class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = User
+    template_name = "groups/group_blocked_user_list.html"
+    context_object_name = "blocked_users"
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
+
+    def test_func(self):
+        return self.request.user == self.group.admin_user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["group"] = self.group
+        context["admin"] = self.group.admin_user
+        return context
+
+    def get_queryset(self):
+        return self.model.objects.filter(
+            group_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
+            group_memberships__group=self.group,
+        ).select_related("profile")
+
+
 class GroupRankingsView(TemplateView):
     template_name = "groups/group_functionality/group_rankings.html"
 
