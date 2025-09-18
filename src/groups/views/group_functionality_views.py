@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
-from django.db.models import Case, When, BooleanField, Exists, OuterRef
+from django.db.models import Case, When, BooleanField, Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -313,7 +313,7 @@ class GroupSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return self.model.objects.with_member_count().annotate(
+        queryset = self.model.objects.with_member_count().annotate(
             is_admin=Case(
                 When(admin_user=self.request.user, then=True),
                 default=False,
@@ -341,6 +341,16 @@ class GroupSearchView(LoginRequiredMixin, ListView):
                 )
             ),
         )
+
+        search_query = self.request.GET.get("q")
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query)
+                | Q(description__icontains=search_query)
+                | Q(admin_user__username__icontains=search_query)
+            )
+
+        return queryset
 
 
 class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):

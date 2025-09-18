@@ -268,7 +268,7 @@ class FriendSearchView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return (
+        queryset = (
             self.model.objects.exclude(pk=self.request.user.pk)
             .annotate(
                 is_friend=Exists(
@@ -309,6 +309,12 @@ class FriendSearchView(LoginRequiredMixin, ListView):
             )
             .distinct()
         )
+
+        search_query = self.request.GET.get("q")
+        if search_query:
+            queryset = queryset.filter(Q(username__icontains=search_query))
+
+        return queryset
 
 
 class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
