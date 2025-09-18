@@ -32,6 +32,13 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             group=self.group,
         ).exists()
 
+    def handle_no_permission(self):
+        messages.error(
+            self.request,
+            "You must be a member of this group to view its members.",
+        )
+        return redirect("group_detail", pk=self.group.pk)
+
     def get_queryset(self):
         return (
             self.model.objects.filter(
@@ -59,7 +66,12 @@ class GroupUserKickView(LoginRequiredMixin, View):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
 
-        if request.user != group.admin_user or request.user == user:
+        if request.user != group.admin_user:
+            messages.error(request, "Only the group admin can kick members.")
+            return redirect("group_detail", pk=pk)
+
+        if request.user == user:
+            messages.error(request, "You cannot kick yourself from the group.")
             return redirect("group_detail", pk=pk)
 
         membership = get_object_or_404(
@@ -72,6 +84,11 @@ class GroupUserKickView(LoginRequiredMixin, View):
         membership.kicked_at = timezone.now()
         membership.save()
 
+        messages.success(
+            request,
+            f"{user.username} has been kicked from the group.",
+        )
+
         url = reverse_lazy("group_user_list", kwargs={"pk": pk}) + "?host_view=true"
         return redirect(url)
 
@@ -81,13 +98,23 @@ class GroupUserBlockView(LoginRequiredMixin, View):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
 
-        if request.user != group.admin_user or request.user == user:
+        if request.user != group.admin_user:
+            messages.error(request, "Only the group admin can block members.")
+            return redirect("group_detail", pk=pk)
+
+        if request.user == user:
+            messages.error(request, "You cannot block yourself.")
             return redirect("group_detail", pk=pk)
 
         membership = get_object_or_404(GroupMembership, user=user, group=group)
         membership.status = GroupMembership.MembershipStatus.BLOCKED
         membership.blocked_at = timezone.now()
         membership.save()
+
+        messages.warning(
+            request,
+            f"{user.username} has been blocked from the group.",
+        )
 
         url = reverse_lazy("group_user_list", kwargs={"pk": pk}) + "?host_view=true"
         return redirect(url)
@@ -104,6 +131,13 @@ class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
     def test_func(self):
         return self.request.user == self.group.admin_user
+
+    def handle_no_permission(self):
+        messages.error(
+            self.request,
+            "Only the group admin can manage join requests.",
+        )
+        return redirect("group_detail", pk=self.group.pk)
 
     def get_queryset(self):
         return self.model.objects.filter(
@@ -122,6 +156,7 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
         join_request = get_object_or_404(GroupAddRequest, pk=request_pk)
 
         if request.user != group.admin_user:
+            messages.error(request, "Only the group admin can accept join requests.")
             return redirect("group_detail", pk=pk)
 
         join_request.status = GroupAddRequest.RequestStatus.ACCEPTED
@@ -138,6 +173,11 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
             membership.blocked_at = None
             membership.save()
 
+        messages.success(
+            request,
+            f"{join_request.user.username} has been accepted into the group!",
+        )
+
         return redirect("group_request_list", pk=pk)
 
 
@@ -150,10 +190,16 @@ class GroupDeclineRequestView(LoginRequiredMixin, View):
         )
 
         if request.user != group.admin_user:
+            messages.error(request, "Only the group admin can decline join requests.")
             return redirect("group_detail", pk=pk)
 
         join_request.status = GroupAddRequest.RequestStatus.DECLINED
         join_request.save()
+
+        messages.info(
+            request,
+            f"Join request from {join_request.user.username} has been declined.",
+        )
 
         return redirect("group_request_list", pk=pk)
 
@@ -162,6 +208,7 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
     model = User
     template_name = "groups/group_functionality/group_user_blocked_list.html"
     context_object_name = "blocked_users"
+    paginate_by = 10
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -171,9 +218,7 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
         return self.request.user == self.group.admin_user
 
     def handle_no_permission(self):
-        messages.error(
-            self.request, "You don't have permission to block users in this group!"
-        )
+        messages.error(self.request, "Only the group admin can view blocked users.")
         return redirect("group_detail", pk=self.group.pk)
 
     def get_context_data(self, **kwargs):
@@ -183,10 +228,14 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
         return context
 
     def get_queryset(self):
-        return self.model.objects.filter(
-            group_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
-            group_memberships__group=self.group,
-        ).select_related("profile")
+        return (
+            self.model.objects.filter(
+                group_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
+                group_memberships__group=self.group,
+            )
+            .select_related("profile")
+            .prefetch_related("group_memberships")
+        )
 
 
 class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -199,13 +248,10 @@ class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         return self.request.user == self.group.admin_user
 
     def handle_no_permission(self):
-        messages.error(
-            self.request, "You don't have permission to unblock users in this group!"
-        )
+        messages.error(self.request, "Only the group admin can unblock users.")
         return redirect("group_detail", pk=self.group.pk)
 
     def post(self, request, *args, **kwargs):
-        # Check if membership exists
         membership = GroupMembership.objects.filter(
             user=self.user_to_unblock,
             group=self.group,
@@ -215,10 +261,13 @@ class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         if membership:
             membership.delete()
             messages.success(
-                request, f"Successfully unblocked {self.user_to_unblock.username}! "
+                request, f"{self.user_to_unblock.username} has been unblocked."
             )
         else:
-            messages.warning(request, f"This user is not blocked in this group.")
+            messages.warning(
+                request,
+                f"{self.user_to_unblock.username} is not blocked in this group.",
+            )
 
         return redirect("group_user_blocked_list", pk=self.group.pk)
 
@@ -232,10 +281,27 @@ class GroupExitView(LoginRequiredMixin, View):
         group = get_object_or_404(Group, pk=pk)
 
         if request.user == group.admin_user:
+            messages.error(
+                request,
+                "Admin cannot leave a group.",
+            )
             return redirect("group_detail", pk=pk)
 
-        membership = get_object_or_404(GroupMembership, user=request.user, group=group)
-        membership.delete()
+        membership = GroupMembership.objects.filter(
+            user=request.user, group=group
+        ).first()
+
+        if membership:
+            membership.delete()
+            messages.success(
+                request,
+                f"You have successfully left '{group.name}'.",
+            )
+        else:
+            messages.warning(
+                request,
+                "You are not a member of this group.",
+            )
 
         return redirect("group_dashboard")
 
@@ -288,24 +354,73 @@ class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["group"] = self.group
-
         return context
 
     def get_success_url(self):
         return reverse_lazy("group_search")
 
     def test_func(self):
-        return not GroupMembership.objects.filter(
+        blocked = GroupMembership.objects.filter(
             status=GroupMembership.MembershipStatus.BLOCKED,
             user=self.request.user,
             group=self.group,
         ).exists()
+
+        is_member = GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            user=self.request.user,
+            group=self.group,
+        ).exists()
+
+        has_pending = GroupAddRequest.objects.filter(
+            status=GroupAddRequest.RequestStatus.PENDING,
+            user=self.request.user,
+            group=self.group,
+        ).exists()
+
+        return not blocked and not is_member and not has_pending
+
+    def handle_no_permission(self):
+        if GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.BLOCKED,
+            user=self.request.user,
+            group=self.group,
+        ).exists():
+            messages.error(
+                self.request,
+                "You are blocked from this group.",
+            )
+        elif GroupMembership.objects.filter(
+            status=GroupMembership.MembershipStatus.ACCEPTED,
+            user=self.request.user,
+            group=self.group,
+        ).exists():
+            messages.info(
+                self.request,
+                "You are already a member of this group.",
+            )
+        elif GroupAddRequest.objects.filter(
+            status=GroupAddRequest.RequestStatus.PENDING,
+            user=self.request.user,
+            group=self.group,
+        ).exists():
+            messages.info(
+                self.request,
+                "You already have a pending request for this group.",
+            )
+
+        return redirect("group_search")
 
     def form_valid(self, form):
         form.instance.status = GroupAddRequest.RequestStatus.PENDING
         form.instance.user = self.request.user
         form.instance.group = self.group
 
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        messages.success(
+            self.request, f"Your join request for '{self.group.name}' has been sent! "
+        )
+
+        return response

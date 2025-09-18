@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Count
@@ -68,6 +69,11 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
             group=self.object,
         )
 
+        messages.success(
+            self.request,
+            f"Group '{self.object.name}' created successfully!",
+        )
+
         return response
 
 
@@ -88,6 +94,12 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
                     "user_add_requests",
                     filter=Q(
                         user_add_requests__status=GroupAddRequest.RequestStatus.PENDING
+                    ),
+                ),
+                blocked_users_count=Count(
+                    "user_memberships",
+                    filter=Q(
+                        user_memberships__status=GroupMembership.MembershipStatus.BLOCKED
                     ),
                 ),
             )
@@ -117,6 +129,20 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            f"Group '{self.object.name}' updated successfully!",
+        )
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            "There was an error updating the group.",
+        )
+        return super().form_invalid(form)
+
 
 class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
@@ -127,3 +153,12 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy("group_dashboard")
+
+    def delete(self, request, *args, **kwargs):
+        group_name = self.get_object().name
+        response = super().delete(request, *args, **kwargs)
+        messages.success(
+            request,
+            f"Group '{group_name}' has been deleted.",
+        )
+        return response
