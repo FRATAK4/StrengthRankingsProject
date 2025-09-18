@@ -170,95 +170,120 @@
   </section>
 
   <!-- Admin Controls (Only visible in host_view mode) -->
-  {% if host_view %}
-  <div class="divider"></div>
+{% if host_view %}
+<div class="divider"></div>
 
-  <section class="section">
-    <div class="section-header">
-      <h3>Admin Controls</h3>
-    </div>
+<section class="section">
+  <div class="section-header">
+    <h3>Admin Controls</h3>
+  </div>
 
-    <div class="alert alert-primary" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
-      <i class="fas fa-shield-alt me-2"></i>
-      You are viewing the admin panel. These controls are only visible to you as the group administrator.
-    </div>
+  <div class="alert alert-primary" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);">
+    <i class="fas fa-shield-alt me-2"></i>
+    You are viewing the admin panel. These controls are only visible to you as the group administrator.
+  </div>
 
-    <div class="row g-4">
-      <!-- Join Requests -->
-      <div class="col-md-6 col-lg-4">
-        <a href="{% url 'group_request_list' pk=group.pk %}" class="text-decoration-none">
-          <div class="card dashboard-card">
-            <div class="card-body text-center">
-              <div class="icon position-relative">
-                <i class="fas fa-user-plus"></i>
-                {% if group.pending_requests > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {{ group.pending_requests }}
-                </span>
-                {% endif %}
-              </div>
-              <h5 class="card-title">Join Requests</h5>
-              <p class="card-text">Manage member requests</p>
+  <div class="row g-4">
+    <!-- Join Requests -->
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'group_request_list' pk=group.pk %}" class="text-decoration-none">
+        <div class="card dashboard-card">
+          <div class="card-body text-center">
+            <div class="icon position-relative">
+              <i class="fas fa-user-plus"></i>
               {% if group.pending_requests > 0 %}
-                <span class="badge bg-warning">{{ group.pending_requests }} pending</span>
-              {% else %}
-                <span class="badge bg-secondary">No pending</span>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ group.pending_requests }}
+              </span>
               {% endif %}
             </div>
+            <h5 class="card-title">Join Requests</h5>
+            <p class="card-text">Manage member requests</p>
+            {% if group.pending_requests > 0 %}
+              <span class="badge bg-warning">{{ group.pending_requests }} pending</span>
+            {% else %}
+              <span class="badge bg-secondary">No pending</span>
+            {% endif %}
           </div>
-        </a>
-      </div>
-
-      <!-- Edit Group -->
-      <div class="col-md-6 col-lg-4">
-        <a href="{% url 'group_edit' pk=group.pk %}" class="text-decoration-none">
-          <div class="card dashboard-card">
-            <div class="card-body text-center">
-              <div class="icon">
-                <i class="fas fa-edit"></i>
-              </div>
-              <h5 class="card-title">Edit Group</h5>
-              <p class="card-text">Update group details</p>
-              <span class="badge bg-info">Settings</span>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Manage Members -->
-      <div class="col-md-6 col-lg-4">
-        <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="text-decoration-none">
-          <div class="card dashboard-card">
-            <div class="card-body text-center">
-              <div class="icon">
-                <i class="fas fa-user-cog"></i>
-              </div>
-              <h5 class="card-title">Manage Members</h5>
-              <p class="card-text">Kick or block members</p>
-              <span class="badge bg-warning">Admin</span>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Delete Group -->
-      <div class="col-md-6 col-lg-4">
-        <a href="{% url 'group_delete' pk=group.pk %}" class="text-decoration-none">
-          <div class="card dashboard-card" style="border: 1px solid rgba(239, 68, 68, 0.3);">
-            <div class="card-body text-center">
-              <div class="icon">
-                <i class="fas fa-trash text-danger"></i>
-              </div>
-              <h5 class="card-title text-danger">Delete Group</h5>
-              <p class="card-text">Permanently delete group</p>
-              <span class="badge bg-danger">Danger Zone</span>
-            </div>
-          </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
-  </section>
-  {% endif %}
+
+    <!-- Edit Group -->
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'group_edit' pk=group.pk %}" class="text-decoration-none">
+        <div class="card dashboard-card">
+          <div class="card-body text-center">
+            <div class="icon">
+              <i class="fas fa-edit"></i>
+            </div>
+            <h5 class="card-title">Edit Group</h5>
+            <p class="card-text">Update group details</p>
+            <span class="badge bg-info">Settings</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Manage Members -->
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'group_user_list' pk=group.pk %}?host_view=true" class="text-decoration-none">
+        <div class="card dashboard-card">
+          <div class="card-body text-center">
+            <div class="icon">
+              <i class="fas fa-user-cog"></i>
+            </div>
+            <h5 class="card-title">Manage Members</h5>
+            <p class="card-text">Kick or block members</p>
+            <span class="badge bg-warning">Admin</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Blocked Users (NEW) -->
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'group_user_blocked_list' pk=group.pk %}" class="text-decoration-none">
+        <div class="card dashboard-card h-100">
+          <div class="card-body text-center">
+            <div class="icon position-relative">
+              <i class="fas fa-user-slash"></i>
+              {% if group.blocked_users_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ group.blocked_users_count }}
+              </span>
+              {% endif %}
+            </div>
+            <h5 class="card-title">Blocked Users</h5>
+            <p class="card-text">View and manage blocked users</p>
+            {% if group.blocked_users_count > 0 %}
+              <span class="badge bg-danger">{{ group.blocked_users_count }} blocked</span>
+            {% else %}
+              <span class="badge bg-secondary">No blocked users</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Delete Group -->
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'group_delete' pk=group.pk %}" class="text-decoration-none">
+        <div class="card dashboard-card" style="border: 1px solid rgba(239, 68, 68, 0.3);">
+          <div class="card-body text-center">
+            <div class="icon">
+              <i class="fas fa-trash text-danger"></i>
+            </div>
+            <h5 class="card-title text-danger">Delete Group</h5>
+            <p class="card-text">Permanently delete group</p>
+            <span class="badge bg-danger">Danger Zone</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
   <!-- Quick Info Section -->
   <div class="divider"></div>

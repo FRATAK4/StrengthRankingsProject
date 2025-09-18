@@ -160,7 +160,7 @@ class GroupDeclineRequestView(LoginRequiredMixin, View):
 
 class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = User
-    template_name = "groups/group_blocked_user_list.html"
+    template_name = "groups/group_functionality/group_user_blocked_list.html"
     context_object_name = "blocked_users"
 
     def setup(self, request, *args, **kwargs):
@@ -189,30 +189,38 @@ class GroupBlockedUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView
         ).select_related("profile")
 
 
-class GroupUnblockUserView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_pk):
-        group = get_object_or_404(Group, pk=pk)
-        user_to_unblock = get_object_or_404(User, pk=user_pk)
+class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.group = get_object_or_404(Group, pk=kwargs.get("pk"))
+        self.user_to_unblock = get_object_or_404(User, pk=kwargs.get("user_pk"))
 
-        if request.user != group.admin_user:
-            messages.error(
-                request, "You don't have permission to block users in this group!"
-            )
-            return redirect("group_detail", kwargs={"pk": pk})
+    def test_func(self):
+        return self.request.user == self.group.admin_user
 
-        GroupMembership.objects.filter(
-            status=GroupMembership.MembershipStatus.BLOCKED,
-            user=user_to_unblock,
-            group=group,
-        ).update(
-            status=GroupMembership.MembershipStatus.ACCEPTED,
-            started_at=timezone.now(),
-            kicked_at=None,
-            blocked_at=None,
+    def handle_no_permission(self):
+        messages.error(
+            self.request, "You don't have permission to unblock users in this group!"
         )
+        return redirect("group_detail", pk=self.group.pk)
 
-        messages.success(request, f"Successfully unblocked {user_to_unblock.username}!")
-        return redirect("group_blocked_user_list", pk=pk)
+    def post(self, request, *args, **kwargs):
+        # Check if membership exists
+        membership = GroupMembership.objects.filter(
+            user=self.user_to_unblock,
+            group=self.group,
+            status=GroupMembership.MembershipStatus.BLOCKED,
+        ).first()
+
+        if membership:
+            membership.delete()
+            messages.success(
+                request, f"Successfully unblocked {self.user_to_unblock.username}! "
+            )
+        else:
+            messages.warning(request, f"This user is not blocked in this group.")
+
+        return redirect("group_user_blocked_list", pk=self.group.pk)
 
 
 class GroupRankingsView(TemplateView):

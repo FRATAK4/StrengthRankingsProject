@@ -45,7 +45,7 @@ urlpatterns = [
         name="group_user_blocked_list",
     ),
     path(
-        "<int:pk>/blocked_users/<int:user_pk>/",
+        "<int:pk>/blocked_users/<int:user_pk>/unblock/",
         GroupUnblockUserView.as_view(),
         name="group_user_unblock",
     ),
