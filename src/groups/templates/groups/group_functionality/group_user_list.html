@@ -100,14 +100,20 @@
       <div class="card-body">
         <div class="row align-items-center">
           <div class="col-auto">
-            <img src="{{ admin.profile.image.url }}"
-                 alt="{{ admin.username }}"
-                 class="rounded-circle"
-                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary);">
+            <a href="{% url 'accounts-user_profile' username=admin.username %}">
+              <img src="{{ admin.profile.image.url }}"
+                   alt="{{ admin.username }}"
+                   class="rounded-circle"
+                   style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--brand-primary); cursor: pointer;">
+            </a>
           </div>
           <div class="col">
             <div class="d-flex align-items-center mb-2">
-              <h4 class="mb-0 me-3 text-secondary">{{ admin.username }}</h4>
+              <h4 class="mb-0 me-3">
+                <a href="{% url 'accounts-user_profile' username=admin.username %}" class="text-decoration-none text-primary">
+                  {{ admin.username }}
+                </a>
+              </h4>
               <span class="badge bg-primary">
                 <i class="fas fa-crown me-1"></i>Admin
               </span>
@@ -148,13 +154,19 @@
             <div class="card-body">
               <div class="row align-items-center">
                 <div class="col-auto">
-                  <img src="{{ member.profile.image.url }}"
-                       alt="{{ member.username }}"
-                       class="rounded-circle"
-                       style="width: 60px; height: 60px; object-fit: cover;">
+                  <a href="{% url 'accounts-user_profile' username=member.username %}">
+                    <img src="{{ member.profile.image.url }}"
+                         alt="{{ member.username }}"
+                         class="rounded-circle"
+                         style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;">
+                  </a>
                 </div>
                 <div class="col">
-                  <h5 class="mb-1">{{ member.username }}</h5>
+                  <h5 class="mb-1">
+                    <a href="{% url 'accounts-user_profile' username=member.username %}" class="text-decoration-none text-primary">
+                      {{ member.username }}
+                    </a>
+                  </h5>
                   <p class="text-secondary mb-1">
                     {{ member.first_name }} {{ member.last_name }}
                   </p>
@@ -191,15 +203,6 @@
                       </button>
                     </form>
                   </div>
-                </div>
-                {% endif %}
-
-                <!-- View Profile (Normal Mode) -->
-                {% if not host_view %}
-                <div class="col-auto">
-                  <a href="#" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-chart-line me-1"></i>View Stats
-                  </a>
                 </div>
                 {% endif %}
               </div>
