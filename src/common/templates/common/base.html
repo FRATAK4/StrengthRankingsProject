@@ -25,7 +25,7 @@
               <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-              <ul class="navbar-nav ms-auto">
+              <ul class="navbar-nav ms-auto align-items-center">
                 {% block nav_items %}
                 <!-- Default nav items - can be overridden -->
                 <li class="nav-item">
@@ -40,7 +40,7 @@
                     <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
                     <span class="fw-semibold">{{ user.username }}</span>
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
+                  <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
                     <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
                     <li><a class="dropdown-item" href="{% url 'friend_dashboard' %}"><i class="fas fa-user-friends me-2"></i>Friends</a></li>
                     <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>Groups</a></li>

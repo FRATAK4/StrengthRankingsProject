@@ -1,4 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import QuerySet
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 from django.views.generic import DetailView, TemplateView, RedirectView
@@ -16,16 +18,16 @@ class UserAndProfileFormView(MultiModelFormView):
     template_name = "accounts/register.html"
     success_url = reverse_lazy("accounts-login")
 
-    def forms_valid(self, forms):
+    def forms_valid(self, forms: dict) -> HttpResponse:
         a = forms["form_user"].save()
         b = forms["form_profile"].save(commit=False)
         b.user = a
         b.save()
-        return super().forms_valid(forms)
+        return super().forms_valid(forms)  # type: ignore[no-any-return]
 
 
 class LoggedUserProfileView(LoginRequiredMixin, RedirectView):
-    def get_redirect_url(self):
+    def get_redirect_url(self) -> str:
         return reverse(
             "accounts-user_profile", kwargs={"username": self.request.user.username}
         )
@@ -38,5 +40,5 @@ class UserProfileView(DetailView):
     slug_field = "username"
     slug_url_kwarg = "username"
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[User]:
         return User.objects.select_related("profile")

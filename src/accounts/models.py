@@ -15,5 +15,5 @@ class Profile(models.Model):
     body_weight = models.DecimalField(max_digits=4, decimal_places=1)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username}_profile"

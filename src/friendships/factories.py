@@ -95,8 +95,8 @@ class FriendRequestFactory(factory.django.DjangoModelFactory):
 
 
 class FriendSendRequestFactory(FriendRequestFactory):
-    status = "pending"
-    sender = factory.Iterator(User.objects.all())
+    status = factory.Iterator(["pending"])
+    sender = factory.Iterator(User.objects.all())  # type: ignore[assignment]
 
     @factory.lazy_attribute
     def receiver(self):

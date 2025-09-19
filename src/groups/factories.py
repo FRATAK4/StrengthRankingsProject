@@ -66,8 +66,8 @@ class GroupAddRequestFactory(factory.django.DjangoModelFactory):
 
 
 class GroupSendRequestFactory(GroupAddRequestFactory):
-    status = "pending"
-    user = factory.Iterator(User.objects.all())
+    status = factory.Iterator(["pending"])
+    user = factory.Iterator(User.objects.all())  # type: ignore[assignment]
 
     @factory.lazy_attribute
     def group(self):
