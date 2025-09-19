@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 
 from .forms import FriendRequestForm
 from .models import Friendship, FriendRequest
+from notifications.models import Notification
 
 
 class FriendDashboardView(LoginRequiredMixin, TemplateView):
@@ -38,6 +39,7 @@ class FriendListView(LoginRequiredMixin, ListView):
 
 
 class FriendKickView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk):
         friend = get_object_or_404(User, pk=pk)
         friendship = Friendship.objects.filter(
@@ -53,6 +55,12 @@ class FriendKickView(LoginRequiredMixin, View):
             status=Friendship.FriendshipStatus.KICKED,
             kicked_at=timezone.now(),
             kicked_by=request.user,
+        )
+
+        Notification.objects.create(
+            type=Notification.NotificationType.USER_KICK,
+            user=friend,
+            notification_user=request.user,
         )
 
         messages.success(
@@ -98,6 +106,12 @@ class FriendBlockView(LoginRequiredMixin, View):
             status=FriendRequest.RequestStatus.PENDING,
         ).update(status=FriendRequest.RequestStatus.DECLINED)
 
+        Notification.objects.create(
+            type=Notification.NotificationType.USER_BLOCK,
+            user=user_to_block,
+            notification_user=request.user,
+        )
+
         messages.success(request, f"You successfully blocked {user_to_block.username}!")
         return redirect("friend_list")
 
@@ -119,6 +133,7 @@ class FriendRequestSentListView(LoginRequiredMixin, ListView):
 
 
 class FriendRequestCancelView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk):
         request_sent = get_object_or_404(
             FriendRequest,
@@ -127,6 +142,13 @@ class FriendRequestCancelView(LoginRequiredMixin, View):
             status=FriendRequest.RequestStatus.PENDING,
         )
         request_sent.delete()
+
+        Notification.objects.filter(
+            type=Notification.NotificationType.FRIEND_REQUEST_RECEIVED,
+            user=request_sent.receiver,
+            notification_user=request.user,
+            received_at=request_sent.sent_at,
+        ).delete()
 
         messages.success(request, "You successfully cancelled request!")
         return redirect("friend_request_sent_list")
@@ -182,6 +204,12 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
             friendship.blocked_by = None
             friendship.save()
 
+        Notification.objects.create(
+            type=Notification.NotificationType.FRIEND_REQUEST_ACCEPTED,
+            user=request_received.sender,
+            notification_user=request.user,
+        )
+
         messages.success(
             request, f"You are now friend with {request_received.sender.username}!"
         )
@@ -198,6 +226,12 @@ class FriendDeclineRequestView(LoginRequiredMixin, View):
         )
         request_received.status = FriendRequest.RequestStatus.DECLINED
         request_received.save()
+
+        Notification.objects.create(
+            type=Notification.NotificationType.FRIEND_REQUEST_DECLINED,
+            user=request_received.sender,
+            notification_user=request.user,
+        )
 
         messages.success(
             request, f"You declined request from {request_received.sender.username}!"
@@ -237,6 +271,12 @@ class FriendUnblockView(LoginRequiredMixin, View):
             return redirect("friend_blocked_list")
 
         friendship.delete()
+
+        Notification.objects.create(
+            type=Notification.NotificationType.USER_UNBLOCK,
+            user=friend,
+            notification_user=request.user,
+        )
 
         messages.success(request, f"You successfully unblocked {friend.username}!")
         return redirect("friend_blocked_list")
@@ -323,9 +363,6 @@ class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     template_name = "friendships/friend_send_request.html"
 
     def get_success_url(self):
-        messages.success(
-            self.request, f"Friend request sent to {self.friend.username}!"
-        )
         return reverse_lazy("friend_search")
 
     def setup(self, request, *args, **kwargs):
@@ -367,5 +404,15 @@ class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         form.instance.status = FriendRequest.RequestStatus.PENDING
         form.instance.sender = self.request.user
         form.instance.receiver = self.friend
+
+        Notification.objects.create(
+            type=Notification.NotificationType.FRIEND_REQUEST_RECEIVED,
+            user=self.friend,
+            notification_user=self.request.user,
+        )
+
+        messages.success(
+            self.request, f"Friend request sent to {self.friend.username}!"
+        )
 
         return super().form_valid(form)
