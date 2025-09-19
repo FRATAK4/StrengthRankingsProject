@@ -50,54 +50,19 @@
     <p class="lead">Stay updated with your activities and connections</p>
   </section>
 
-  <!-- Notification Stats -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-4">
-      <div class="card dashboard-card">
-        <div class="card-body text-center">
-          <div class="icon mb-2">
-            <i class="fas fa-bell text-gradient"></i>
-          </div>
-          <h4 class="mb-1">{{ notifications|length }}</h4>
-          <p class="text-secondary small">Total Notifications</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card dashboard-card">
-        <div class="card-body text-center">
-          <div class="icon mb-2">
-            <i class="fas fa-user-friends text-gradient"></i>
-          </div>
-          <h4 class="mb-1">
-            {{ notifications|dictsort:"type"|selectattr:"type"|startswith:"friend"|length|default:"0" }}
-          </h4>
-          <p class="text-secondary small">Friend Notifications</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card dashboard-card">
-        <div class="card-body text-center">
-          <div class="icon mb-2">
-            <i class="fas fa-users text-gradient"></i>
-          </div>
-          <h4 class="mb-1">
-            {{ notifications|dictsort:"type"|selectattr:"type"|startswith:"group"|length|default:"0" }}
-          </h4>
-          <p class="text-secondary small">Group Notifications</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="divider"></div>
 
   <!-- Notifications List -->
   <section class="section">
     {% if notifications %}
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Your Notifications</h3>
+        <span class="badge bg-secondary">
+          <i class="fas fa-bell me-1"></i>
+          {{ page_obj.paginator.count }} total
+        </span>
+      </div>
+
       <div class="row g-3">
         {% for notification in notifications %}
         <div class="col-12">
