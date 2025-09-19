@@ -9,6 +9,8 @@ from faker import Faker
 from .models import Friendship, FriendRequest
 from accounts.factories import UserFactory
 
+from notifications.models import Notification
+
 fake = Faker()
 
 
@@ -124,3 +126,14 @@ class FriendSendRequestFactory(FriendRequestFactory):
         )
 
         return random.choice(users_to_send)
+
+    @factory.post_generation
+    def create_notification(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        Notification.objects.create(
+            type=Notification.NotificationType.FRIEND_REQUEST_RECEIVED,
+            user=self.receiver,
+            notification_user=self.sender,
+        )

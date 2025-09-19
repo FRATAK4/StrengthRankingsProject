@@ -5,6 +5,8 @@ from django.utils import timezone
 
 from friendships.models import FriendRequest, Friendship
 
+from notifications.models import Notification
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -47,3 +49,9 @@ class Command(BaseCommand):
                 friendship.kicked_by = None
                 friendship.blocked_by = None
                 friendship.save()
+
+            Notification.objects.create(
+                type=Notification.NotificationType.FRIEND_REQUEST_ACCEPTED,
+                user=request.sender,
+                notification_user=request.receiver,
+            )

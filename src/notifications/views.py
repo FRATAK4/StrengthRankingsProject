@@ -11,8 +11,6 @@ class NotificationListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return (
-            self.model.objects.filter(user=self.request.user)
-            .order_by("-received_at")
-            .select_related("notification_user", "notification_group")
+        return self.model.objects.filter(user=self.request.user).select_related(
+            "notification_user", "notification_group"
         )

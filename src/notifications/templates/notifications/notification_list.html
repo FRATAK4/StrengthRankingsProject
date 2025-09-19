@@ -1,10 +1,137 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}
-    Notifications
-{% endblock %}
+{% block title %}Notifications{% endblock %}
 
 {% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">Notifications</h1>
+    <p class="lead">Stay updated with your activities</p>
+  </section>
 
+  <div class="divider"></div>
+
+  <!-- Notifications List -->
+  <section class="section">
+    {% if notifications %}
+      <div class="row g-3">
+        {% for notification in notifications %}
+        <div class="col-12">
+          {% if notification.url %}
+          <a href="{{ notification.url }}" class="text-decoration-none">
+          {% endif %}
+            <div class="card profile-card" style="{% if notification.url %}cursor: pointer;{% endif %} transition: all var(--transition-normal);">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <!-- Icon Column -->
+                  <div class="col-auto">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width: 45px; height: 45px; background: rgba(0,212,255,0.1);">
+                      {% if 'friend' in notification.type %}
+                        <i class="fas fa-user-friends text-gradient"></i>
+                      {% elif 'group' in notification.type %}
+                        <i class="fas fa-users text-gradient"></i>
+                      {% else %}
+                        <i class="fas fa-bell text-gradient"></i>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Message Column -->
+                  <div class="col">
+                    <p class="mb-1 fw-light" style="color: var(--text-secondary);">
+                      {{ notification.message }}
+                    </p>
+                    <small class="text-secondary fw-light">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ notification.received_at|timesince }} ago
+                    </small>
+                  </div>
+
+                  {% if notification.url %}
+                  <!-- Arrow indicator for clickable items -->
+                  <div class="col-auto">
+                    <i class="fas fa-chevron-right text-muted"></i>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% if notification.url %}
+          </a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link" style="background: var(--gradient-primary); border-color: var(--brand-primary);">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}"
+                   style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-bell-slash text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="mb-3">No Notifications</h3>
+        <p class="text-secondary mb-4">
+          You're all caught up! When you receive friend requests or group invitations, they'll appear here.
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+          <a href="{% url 'friend_dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-user-friends me-2"></i>Find Friends
+          </a>
+          <a href="{% url 'group_dashboard' %}" class="btn btn-outline-accent">
+            <i class="fas fa-users me-2"></i>Browse Groups
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<!-- Add hover effect with CSS -->
+<style>
+.card.profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(0,212,255,0.3);
+}
+</style>
 {% endblock %}

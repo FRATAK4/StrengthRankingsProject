@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
@@ -14,6 +15,8 @@ from django.views.generic import (
 from groups.forms import GroupForm, GroupAddRequestForm
 from groups.models import Group, GroupMembership, GroupAddRequest
 from django.contrib.auth.models import User
+
+from notifications.models import Notification
 
 
 class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -62,6 +65,7 @@ class GroupUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
 
 class GroupUserKickView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk, user_pk):
         group = get_object_or_404(Group, pk=pk)
         user = get_object_or_404(User, pk=user_pk)
@@ -83,6 +87,13 @@ class GroupUserKickView(LoginRequiredMixin, View):
         membership.status = GroupMembership.MembershipStatus.KICKED
         membership.kicked_at = timezone.now()
         membership.save()
+
+        Notification.objects.create(
+            type=Notification.NotificationType.GROUP_KICK,
+            user=user,
+            notification_user=request.user,
+            notification_group=group,
+        )
 
         messages.success(
             request,
@@ -110,6 +121,13 @@ class GroupUserBlockView(LoginRequiredMixin, View):
         membership.status = GroupMembership.MembershipStatus.BLOCKED
         membership.blocked_at = timezone.now()
         membership.save()
+
+        Notification.objects.create(
+            type=Notification.NotificationType.GROUP_BLOCK,
+            user=user,
+            notification_user=request.user,
+            notification_group=group,
+        )
 
         messages.warning(
             request,
@@ -151,6 +169,7 @@ class GroupRequestListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
 
 
 class GroupAcceptRequestView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk, request_pk):
         group = get_object_or_404(Group, pk=pk)
         join_request = get_object_or_404(GroupAddRequest, pk=request_pk)
@@ -173,6 +192,13 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
             membership.blocked_at = None
             membership.save()
 
+        Notification.objects.create(
+            type=Notification.NotificationType.GROUP_REQUEST_ACCEPTED,
+            user=join_request.user,
+            notification_user=request.user,
+            notification_group=group,
+        )
+
         messages.success(
             request,
             f"{join_request.user.username} has been accepted into the group!",
@@ -182,6 +208,7 @@ class GroupAcceptRequestView(LoginRequiredMixin, View):
 
 
 class GroupDeclineRequestView(LoginRequiredMixin, View):
+    @transaction.atomic
     def post(self, request, pk, request_pk):
         group = get_object_or_404(Group, pk=pk)
         join_request = get_object_or_404(
@@ -195,6 +222,13 @@ class GroupDeclineRequestView(LoginRequiredMixin, View):
 
         join_request.status = GroupAddRequest.RequestStatus.DECLINED
         join_request.save()
+
+        Notification.objects.create(
+            type=Notification.NotificationType.GROUP_REQUEST_DECLINED,
+            user=join_request.user,
+            notification_user=request.user,
+            notification_group=group,
+        )
 
         messages.info(
             request,
@@ -251,6 +285,7 @@ class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         messages.error(self.request, "Only the group admin can unblock users.")
         return redirect("group_detail", pk=self.group.pk)
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         membership = GroupMembership.objects.filter(
             user=self.user_to_unblock,
@@ -260,6 +295,14 @@ class GroupUnblockUserView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if membership:
             membership.delete()
+
+            Notification.objects.create(
+                type=Notification.NotificationType.GROUP_UNBLOCK,
+                user=self.user_to_unblock,
+                notification_user=request.user,
+                notification_group=self.group,
+            )
+
             messages.success(
                 request, f"{self.user_to_unblock.username} has been unblocked."
             )
@@ -428,6 +471,13 @@ class GroupSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         form.instance.group = self.group
 
         response = super().form_valid(form)
+
+        Notification.objects.create(
+            type=Notification.NotificationType.GROUP_REQUEST_RECEIVED,
+            user=self.group.admin_user,
+            notification_user=self.request.user,
+            notification_group=self.group,
+        )
 
         messages.success(
             self.request, f"Your join request for '{self.group.name}' has been sent! "
