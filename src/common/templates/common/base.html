@@ -7,7 +7,6 @@
     <title>{% block title %}{% endblock %} | StrengthRankings</title>
     <link rel="stylesheet" href="{% static 'vendors/@coreui/coreui/css/coreui.min.css' %}">
     <link rel="stylesheet" href="{% static 'my_css/my_style.css' %}">
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
   </head>
@@ -16,8 +15,60 @@
     <div class="background-animation"></div>
 
     <div class="page-wrapper">
+      <!-- Default Navbar - can be overridden -->
       {% block header %}
-      <!-- navbar -->
+        {% if user.is_authenticated %}
+        <nav class="navbar navbar-expand-lg">
+          <div class="container">
+            <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+            <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav ms-auto">
+                {% block nav_items %}
+                <!-- Default nav items - can be overridden -->
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'common-home' %}">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                  </a>
+                </li>
+                {% endblock %}
+
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+                    <span class="fw-semibold">{{ user.username }}</span>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'friend_dashboard' %}"><i class="fas fa-user-friends me-2"></i>Friends</a></li>
+                    <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>Groups</a></li>
+                    <li><a class="dropdown-item" href="{% url 'training_plan_list' %}"><i class="fas fa-clipboard-list me-2"></i>Training Plans</a></li>
+                    <li><a class="dropdown-item" href="{% url 'notification_list' %}"><i class="fas fa-bell me-2"></i>Notifications</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="post" action="{% url 'accounts-logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger">
+                          <i class="fas fa-sign-out-alt me-2"></i>Log out
+                        </button>
+                      </form>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        {% else %}
+        <!-- Unauthenticated navbar -->
+        <nav class="navbar navbar-expand-lg">
+          <div class="container">
+            <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+          </div>
+        </nav>
+        {% endif %}
       {% endblock %}
 
       <main class="main-content">
