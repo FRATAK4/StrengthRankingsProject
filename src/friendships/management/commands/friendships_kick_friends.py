@@ -1,10 +1,12 @@
 import random
 
 from django.core.management import BaseCommand
-from django.db.models import F
+from django.db import transaction
 from django.utils import timezone
 
 from friendships.models import Friendship
+
+from notifications.models import Notification
 
 
 class Command(BaseCommand):
@@ -15,6 +17,7 @@ class Command(BaseCommand):
 
         self.stdout.write("Successfully kicked all friends!")
 
+    @transaction.atomic
     def _kick_friends(self):
         friendships = Friendship.objects.filter(
             status=Friendship.FriendshipStatus.ACTIVE
@@ -24,3 +27,13 @@ class Command(BaseCommand):
             friendship.kicked_at = timezone.now()
             friendship.kicked_by = random.choice([friendship.user, friendship.friend])
             friendship.save()
+
+            Notification.objects.create(
+                type=Notification.NotificationType.USER_KICK,
+                user=(
+                    friendship.user
+                    if friendship.kicked_by == friendship.friend
+                    else friendship.friend
+                ),
+                notification_user=friendship.kicked_by,
+            )

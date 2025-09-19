@@ -47,7 +47,7 @@
   <!-- Page Header -->
   <section class="hero-section mb-5">
     <h1 class="display-title">Notifications</h1>
-    <p class="lead">Stay updated with your activities and connections</p>
+    <p class="lead">Stay updated with your activities</p>
   </section>
 
   <div class="divider"></div>
@@ -55,122 +55,52 @@
   <!-- Notifications List -->
   <section class="section">
     {% if notifications %}
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Your Notifications</h3>
-        <span class="badge bg-secondary">
-          <i class="fas fa-bell me-1"></i>
-          {{ page_obj.paginator.count }} total
-        </span>
-      </div>
-
       <div class="row g-3">
         {% for notification in notifications %}
         <div class="col-12">
-          <div class="card profile-card {% if not notification.is_read %}border-warning{% endif %}">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <!-- Icon Column -->
-                <div class="col-auto">
-                  <div class="rounded-circle d-flex align-items-center justify-content-center"
-                       style="width: 50px; height: 50px; background:
-                       {% if 'accepted' in notification.type %}var(--gradient-primary)
-                       {% elif 'declined' in notification.type or 'kick' in notification.type or 'block' in notification.type %}rgba(239, 68, 68, 0.2)
-                       {% elif 'request' in notification.type %}rgba(255, 210, 63, 0.2)
-                       {% elif 'unblock' in notification.type %}rgba(74, 222, 128, 0.2)
-                       {% else %}rgba(255, 255, 255, 0.1){% endif %};">
-
-                    <!-- Icon based on notification type -->
-                    {% if 'friend' in notification.type %}
-                      {% if 'accepted' in notification.type %}
-                        <i class="fas fa-user-check" style="color: var(--bg-primary);"></i>
-                      {% elif 'declined' in notification.type %}
-                        <i class="fas fa-user-times text-danger"></i>
-                      {% elif 'request' in notification.type %}
-                        <i class="fas fa-user-plus text-warning"></i>
-                      {% elif 'kick' in notification.type %}
-                        <i class="fas fa-user-minus text-danger"></i>
-                      {% elif 'block' in notification.type %}
-                        <i class="fas fa-user-slash text-danger"></i>
-                      {% elif 'unblock' in notification.type %}
-                        <i class="fas fa-user-check text-success"></i>
+          {% if notification.url %}
+          <a href="{{ notification.url }}" class="text-decoration-none">
+          {% endif %}
+            <div class="card profile-card" style="{% if notification.url %}cursor: pointer;{% endif %} transition: all var(--transition-normal);">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <!-- Icon Column -->
+                  <div class="col-auto">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width: 45px; height: 45px; background: rgba(0,212,255,0.1);">
+                      {% if 'friend' in notification.type %}
+                        <i class="fas fa-user-friends text-gradient"></i>
+                      {% elif 'group' in notification.type %}
+                        <i class="fas fa-users text-gradient"></i>
                       {% else %}
-                        <i class="fas fa-user-friends text-secondary"></i>
+                        <i class="fas fa-bell text-gradient"></i>
                       {% endif %}
-
-                    {% elif 'group' in notification.type %}
-                      {% if 'accepted' in notification.type %}
-                        <i class="fas fa-check-circle" style="color: var(--bg-primary);"></i>
-                      {% elif 'declined' in notification.type %}
-                        <i class="fas fa-times-circle text-danger"></i>
-                      {% elif 'request' in notification.type %}
-                        <i class="fas fa-sign-in-alt text-warning"></i>
-                      {% elif 'kick' in notification.type %}
-                        <i class="fas fa-door-open text-danger"></i>
-                      {% elif 'block' in notification.type %}
-                        <i class="fas fa-ban text-danger"></i>
-                      {% elif 'unblock' in notification.type %}
-                        <i class="fas fa-unlock text-success"></i>
-                      {% else %}
-                        <i class="fas fa-users text-secondary"></i>
-                      {% endif %}
-
-                    {% else %}
-                      <i class="fas fa-bell text-secondary"></i>
-                    {% endif %}
-                  </div>
-                </div>
-
-                <!-- Message Column -->
-                <div class="col">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                      <p class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
-                        {{ notification.message }}
-                      </p>
-                      <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        {{ notification.received_at|timesince }} ago
-                      </small>
                     </div>
-
-                    <!-- Badge for notification type -->
-                    <span class="badge
-                      {% if 'accepted' in notification.type %}bg-success
-                      {% elif 'declined' in notification.type %}bg-danger
-                      {% elif 'kick' in notification.type %}bg-warning
-                      {% elif 'block' in notification.type %}bg-danger
-                      {% elif 'unblock' in notification.type %}bg-info
-                      {% elif 'request' in notification.type %}bg-warning
-                      {% else %}bg-secondary{% endif %} ms-3">
-
-                      {% if 'friend_request_received' in notification.type %}Friend Request
-                      {% elif 'friend_request_accepted' in notification.type %}Accepted
-                      {% elif 'friend_request_declined' in notification.type %}Declined
-                      {% elif 'user_kick' in notification.type %}Removed
-                      {% elif 'user_block' in notification.type %}Blocked
-                      {% elif 'user_unblock' in notification.type %}Unblocked
-                      {% elif 'group_request_received' in notification.type %}Join Request
-                      {% elif 'group_request_accepted' in notification.type %}Accepted
-                      {% elif 'group_request_declined' in notification.type %}Declined
-                      {% elif 'group_kick' in notification.type %}Kicked
-                      {% elif 'group_block' in notification.type %}Blocked
-                      {% elif 'group_unblock' in notification.type %}Unblocked
-                      {% else %}Notification{% endif %}
-                    </span>
                   </div>
-                </div>
 
-                <!-- Action Column -->
-                <div class="col-auto">
+                  <!-- Message Column -->
+                  <div class="col">
+                    <p class="mb-1 fw-light" style="color: var(--text-secondary);">
+                      {{ notification.message }}
+                    </p>
+                    <small class="text-secondary fw-light">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ notification.received_at|timesince }} ago
+                    </small>
+                  </div>
+
                   {% if notification.url %}
-                    <a href="{{ notification.url }}" class="btn btn-primary btn-sm">
-                      <i class="fas fa-arrow-right me-1"></i>View
-                    </a>
+                  <!-- Arrow indicator for clickable items -->
+                  <div class="col-auto">
+                    <i class="fas fa-chevron-right text-muted"></i>
+                  </div>
                   {% endif %}
                 </div>
               </div>
             </div>
-          </div>
+          {% if notification.url %}
+          </a>
+          {% endif %}
         </div>
         {% endfor %}
       </div>
@@ -234,27 +164,14 @@
       </div>
     {% endif %}
   </section>
-
-  <!-- Quick Actions -->
-  {% if notifications %}
-  <div class="divider"></div>
-
-  <section class="section mt-5">
-    <div class="text-center">
-      <p class="text-secondary mb-3">Quick Actions</p>
-      <div class="d-flex gap-2 justify-content-center flex-wrap">
-        <a href="{% url 'friend_request_received_list' %}" class="btn btn-outline-secondary btn-sm">
-          <i class="fas fa-user-plus me-1"></i>Friend Requests
-        </a>
-        <a href="{% url 'friend_dashboard' %}" class="btn btn-outline-secondary btn-sm">
-          <i class="fas fa-user-friends me-1"></i>Friends
-        </a>
-        <a href="{% url 'group_dashboard' %}" class="btn btn-outline-secondary btn-sm">
-          <i class="fas fa-users me-1"></i>Groups
-        </a>
-      </div>
-    </div>
-  </section>
-  {% endif %}
 </div>
+
+<!-- Add hover effect with CSS -->
+<style>
+.card.profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(0,212,255,0.3);
+}
+</style>
 {% endblock %}

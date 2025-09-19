@@ -8,6 +8,8 @@ from django.utils import timezone
 
 from friendships.models import Friendship
 
+from notifications.models import Notification
+
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
@@ -65,5 +67,11 @@ class Command(BaseCommand):
                 friendship.blocked_at = timezone.now()
                 friendship.blocked_by = user
                 friendship.save()
+
+            Notification.objects.create(
+                type=Notification.NotificationType.USER_BLOCK,
+                user=user_to_block,
+                notification_user=user,
+            )
 
         return len(users_to_block)
