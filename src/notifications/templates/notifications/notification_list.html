@@ -1,10 +1,295 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}
-    Notifications
+{% block title %}Notifications{% endblock %}
+
+{% block header %}
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'common-home' %}">StrengthRankings</a>
+    <button class="navbar-toggler" type="button" data-coreui-toggle="collapse" data-coreui-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'common-home' %}">
+            <i class="fas fa-home me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-coreui-toggle="dropdown">
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle me-2" width="35" height="35" style="border: 2px solid var(--brand-primary);">
+            <span class="fw-semibold">{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'accounts-profile' %}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'friend_dashboard' %}"><i class="fas fa-user-friends me-2"></i>Friends</a></li>
+            <li><a class="dropdown-item" href="{% url 'group_dashboard' %}"><i class="fas fa-users me-2"></i>Groups</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'accounts-logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log out
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+  <!-- Page Header -->
+  <section class="hero-section mb-5">
+    <h1 class="display-title">Notifications</h1>
+    <p class="lead">Stay updated with your activities and connections</p>
+  </section>
 
+  <!-- Notification Stats -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card dashboard-card">
+        <div class="card-body text-center">
+          <div class="icon mb-2">
+            <i class="fas fa-bell text-gradient"></i>
+          </div>
+          <h4 class="mb-1">{{ notifications|length }}</h4>
+          <p class="text-secondary small">Total Notifications</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card dashboard-card">
+        <div class="card-body text-center">
+          <div class="icon mb-2">
+            <i class="fas fa-user-friends text-gradient"></i>
+          </div>
+          <h4 class="mb-1">
+            {{ notifications|dictsort:"type"|selectattr:"type"|startswith:"friend"|length|default:"0" }}
+          </h4>
+          <p class="text-secondary small">Friend Notifications</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card dashboard-card">
+        <div class="card-body text-center">
+          <div class="icon mb-2">
+            <i class="fas fa-users text-gradient"></i>
+          </div>
+          <h4 class="mb-1">
+            {{ notifications|dictsort:"type"|selectattr:"type"|startswith:"group"|length|default:"0" }}
+          </h4>
+          <p class="text-secondary small">Group Notifications</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Notifications List -->
+  <section class="section">
+    {% if notifications %}
+      <div class="row g-3">
+        {% for notification in notifications %}
+        <div class="col-12">
+          <div class="card profile-card {% if not notification.is_read %}border-warning{% endif %}">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Icon Column -->
+                <div class="col-auto">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center"
+                       style="width: 50px; height: 50px; background:
+                       {% if 'accepted' in notification.type %}var(--gradient-primary)
+                       {% elif 'declined' in notification.type or 'kick' in notification.type or 'block' in notification.type %}rgba(239, 68, 68, 0.2)
+                       {% elif 'request' in notification.type %}rgba(255, 210, 63, 0.2)
+                       {% elif 'unblock' in notification.type %}rgba(74, 222, 128, 0.2)
+                       {% else %}rgba(255, 255, 255, 0.1){% endif %};">
+
+                    <!-- Icon based on notification type -->
+                    {% if 'friend' in notification.type %}
+                      {% if 'accepted' in notification.type %}
+                        <i class="fas fa-user-check" style="color: var(--bg-primary);"></i>
+                      {% elif 'declined' in notification.type %}
+                        <i class="fas fa-user-times text-danger"></i>
+                      {% elif 'request' in notification.type %}
+                        <i class="fas fa-user-plus text-warning"></i>
+                      {% elif 'kick' in notification.type %}
+                        <i class="fas fa-user-minus text-danger"></i>
+                      {% elif 'block' in notification.type %}
+                        <i class="fas fa-user-slash text-danger"></i>
+                      {% elif 'unblock' in notification.type %}
+                        <i class="fas fa-user-check text-success"></i>
+                      {% else %}
+                        <i class="fas fa-user-friends text-secondary"></i>
+                      {% endif %}
+
+                    {% elif 'group' in notification.type %}
+                      {% if 'accepted' in notification.type %}
+                        <i class="fas fa-check-circle" style="color: var(--bg-primary);"></i>
+                      {% elif 'declined' in notification.type %}
+                        <i class="fas fa-times-circle text-danger"></i>
+                      {% elif 'request' in notification.type %}
+                        <i class="fas fa-sign-in-alt text-warning"></i>
+                      {% elif 'kick' in notification.type %}
+                        <i class="fas fa-door-open text-danger"></i>
+                      {% elif 'block' in notification.type %}
+                        <i class="fas fa-ban text-danger"></i>
+                      {% elif 'unblock' in notification.type %}
+                        <i class="fas fa-unlock text-success"></i>
+                      {% else %}
+                        <i class="fas fa-users text-secondary"></i>
+                      {% endif %}
+
+                    {% else %}
+                      <i class="fas fa-bell text-secondary"></i>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Message Column -->
+                <div class="col">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <p class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                        {{ notification.message }}
+                      </p>
+                      <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        {{ notification.received_at|timesince }} ago
+                      </small>
+                    </div>
+
+                    <!-- Badge for notification type -->
+                    <span class="badge
+                      {% if 'accepted' in notification.type %}bg-success
+                      {% elif 'declined' in notification.type %}bg-danger
+                      {% elif 'kick' in notification.type %}bg-warning
+                      {% elif 'block' in notification.type %}bg-danger
+                      {% elif 'unblock' in notification.type %}bg-info
+                      {% elif 'request' in notification.type %}bg-warning
+                      {% else %}bg-secondary{% endif %} ms-3">
+
+                      {% if 'friend_request_received' in notification.type %}Friend Request
+                      {% elif 'friend_request_accepted' in notification.type %}Accepted
+                      {% elif 'friend_request_declined' in notification.type %}Declined
+                      {% elif 'user_kick' in notification.type %}Removed
+                      {% elif 'user_block' in notification.type %}Blocked
+                      {% elif 'user_unblock' in notification.type %}Unblocked
+                      {% elif 'group_request_received' in notification.type %}Join Request
+                      {% elif 'group_request_accepted' in notification.type %}Accepted
+                      {% elif 'group_request_declined' in notification.type %}Declined
+                      {% elif 'group_kick' in notification.type %}Kicked
+                      {% elif 'group_block' in notification.type %}Blocked
+                      {% elif 'group_unblock' in notification.type %}Unblocked
+                      {% else %}Notification{% endif %}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Action Column -->
+                <div class="col-auto">
+                  {% if notification.url %}
+                    <a href="{{ notification.url }}" class="btn btn-primary btn-sm">
+                      <i class="fas fa-arrow-right me-1"></i>View
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link" style="background: var(--gradient-primary); border-color: var(--brand-primary);">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}"
+                   style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+                 style="background: var(--surface); border-color: var(--brand-primary); color: var(--text-primary);">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5">
+        <div class="mb-4">
+          <i class="fas fa-bell-slash text-gradient" style="font-size: 5rem;"></i>
+        </div>
+        <h3 class="mb-3">No Notifications</h3>
+        <p class="text-secondary mb-4">
+          You're all caught up! When you receive friend requests or group invitations, they'll appear here.
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+          <a href="{% url 'friend_dashboard' %}" class="btn btn-primary">
+            <i class="fas fa-user-friends me-2"></i>Find Friends
+          </a>
+          <a href="{% url 'group_dashboard' %}" class="btn btn-outline-accent">
+            <i class="fas fa-users me-2"></i>Browse Groups
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Quick Actions -->
+  {% if notifications %}
+  <div class="divider"></div>
+
+  <section class="section mt-5">
+    <div class="text-center">
+      <p class="text-secondary mb-3">Quick Actions</p>
+      <div class="d-flex gap-2 justify-content-center flex-wrap">
+        <a href="{% url 'friend_request_received_list' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-user-plus me-1"></i>Friend Requests
+        </a>
+        <a href="{% url 'friend_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-user-friends me-1"></i>Friends
+        </a>
+        <a href="{% url 'group_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-users me-1"></i>Groups
+        </a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
 {% endblock %}
