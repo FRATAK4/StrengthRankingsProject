@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management import BaseCommand
 from django.db import transaction
 from django.db.models import Q
@@ -9,7 +11,7 @@ from notifications.models import Notification
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write("Accepting request(s)...")
 
         self._accept_requests()
@@ -17,7 +19,7 @@ class Command(BaseCommand):
         self.stdout.write("Successfully accepted all requests!")
 
     @transaction.atomic
-    def _accept_requests(self):
+    def _accept_requests(self) -> None:
         requests = list(
             FriendRequest.objects.filter(status=FriendRequest.RequestStatus.PENDING)
         )

@@ -1,9 +1,12 @@
+from typing import Any, cast
+
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Exists, Q, OuterRef, F
+from django.db.models import Exists, Q, OuterRef, F, QuerySet
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, CreateView, TemplateView
@@ -25,7 +28,7 @@ class FriendListView(LoginRequiredMixin, ListView):
     context_object_name = "friends"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[User]:
         return self.model.objects.filter(
             Q(
                 sent_friendships__friend=self.request.user,
@@ -40,11 +43,13 @@ class FriendListView(LoginRequiredMixin, ListView):
 
 class FriendKickView(LoginRequiredMixin, View):
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: str) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         friend = get_object_or_404(User, pk=pk)
         friendship = Friendship.objects.filter(
             Q(status=Friendship.FriendshipStatus.ACTIVE),
-            Q(user=request.user, friend=friend) | Q(user=friend, friend=request.user),
+            Q(user=user, friend=friend) | Q(user=friend, friend=user),
         ).first()
 
         if not friendship:
@@ -54,13 +59,13 @@ class FriendKickView(LoginRequiredMixin, View):
         Friendship.objects.filter(pk=friendship.pk).update(
             status=Friendship.FriendshipStatus.KICKED,
             kicked_at=timezone.now(),
-            kicked_by=request.user,
+            kicked_by=user,
         )
 
         Notification.objects.create(
             type=Notification.NotificationType.USER_KICK,
             user=friend,
-            notification_user=request.user,
+            notification_user=user,
         )
 
         messages.success(
@@ -71,25 +76,26 @@ class FriendKickView(LoginRequiredMixin, View):
 
 class FriendBlockView(LoginRequiredMixin, View):
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: str) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         user_to_block = get_object_or_404(User, pk=pk)
 
-        if request.user == user_to_block:
+        if user == user_to_block:
             messages.error(request, "You can't block yourself!")
             return redirect("friend_list")
 
         friendship = Friendship.objects.filter(
-            Q(user=request.user, friend=user_to_block)
-            | Q(user=user_to_block, friend=request.user)
+            Q(user=user, friend=user_to_block) | Q(user=user_to_block, friend=user)
         ).first()
 
         if not friendship:
             Friendship.objects.create(
                 status=Friendship.FriendshipStatus.BLOCKED,
-                user=request.user,
+                user=user,
                 friend=user_to_block,
                 blocked_at=timezone.now(),
-                blocked_by=request.user,
+                blocked_by=user,
             )
         elif friendship.status == Friendship.FriendshipStatus.BLOCKED:
             messages.error(request, "You can't block this user!")
@@ -97,19 +103,19 @@ class FriendBlockView(LoginRequiredMixin, View):
         else:
             friendship.status = Friendship.FriendshipStatus.BLOCKED
             friendship.blocked_at = timezone.now()
-            friendship.blocked_by = request.user
+            friendship.blocked_by = user
             friendship.save()
 
         FriendRequest.objects.filter(
-            Q(sender=request.user, receiver=user_to_block)
-            | Q(sender=user_to_block, receiver=request.user),
+            Q(sender=user, receiver=user_to_block)
+            | Q(sender=user_to_block, receiver=user),
             status=FriendRequest.RequestStatus.PENDING,
         ).update(status=FriendRequest.RequestStatus.DECLINED)
 
         Notification.objects.create(
             type=Notification.NotificationType.USER_BLOCK,
             user=user_to_block,
-            notification_user=request.user,
+            notification_user=user,
         )
 
         messages.success(request, f"You successfully blocked {user_to_block.username}!")
@@ -122,10 +128,12 @@ class FriendRequestSentListView(LoginRequiredMixin, ListView):
     context_object_name = "requests_sent"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[FriendRequest]:
+        user = cast(User, self.request.user)
+
         return (
             self.model.objects.filter(
-                status=FriendRequest.RequestStatus.PENDING, sender=self.request.user
+                status=FriendRequest.RequestStatus.PENDING, sender=user
             )
             .select_related("receiver", "receiver__profile")
             .order_by("-sent_at")
@@ -134,11 +142,13 @@ class FriendRequestSentListView(LoginRequiredMixin, ListView):
 
 class FriendRequestCancelView(LoginRequiredMixin, View):
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         request_sent = get_object_or_404(
             FriendRequest,
             pk=pk,
-            sender=request.user,
+            sender=user,
             status=FriendRequest.RequestStatus.PENDING,
         )
         request_sent.delete()
@@ -146,7 +156,7 @@ class FriendRequestCancelView(LoginRequiredMixin, View):
         Notification.objects.filter(
             type=Notification.NotificationType.FRIEND_REQUEST_RECEIVED,
             user=request_sent.receiver,
-            notification_user=request.user,
+            notification_user=user,
             received_at=request_sent.sent_at,
         ).delete()
 
@@ -160,10 +170,12 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
     context_object_name = "requests_received"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[FriendRequest]:
+        user = cast(User, self.request.user)
+
         return (
             self.model.objects.filter(
-                status=FriendRequest.RequestStatus.PENDING, receiver=self.request.user
+                status=FriendRequest.RequestStatus.PENDING, receiver=user
             )
             .select_related("sender", "sender__profile")
             .order_by("-sent_at")
@@ -172,11 +184,13 @@ class FriendRequestReceivedListView(LoginRequiredMixin, ListView):
 
 class FriendAcceptRequestView(LoginRequiredMixin, View):
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         request_received = get_object_or_404(
             FriendRequest,
             pk=pk,
-            receiver=request.user,
+            receiver=user,
             status=FriendRequest.RequestStatus.PENDING,
         )
         request_received.status = FriendRequest.RequestStatus.ACCEPTED
@@ -207,7 +221,7 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
         Notification.objects.create(
             type=Notification.NotificationType.FRIEND_REQUEST_ACCEPTED,
             user=request_received.sender,
-            notification_user=request.user,
+            notification_user=user,
         )
 
         messages.success(
@@ -217,11 +231,13 @@ class FriendAcceptRequestView(LoginRequiredMixin, View):
 
 
 class FriendDeclineRequestView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         request_received = get_object_or_404(
             FriendRequest,
             pk=pk,
-            receiver=request.user,
+            receiver=user,
             status=FriendRequest.RequestStatus.PENDING,
         )
         request_received.status = FriendRequest.RequestStatus.DECLINED
@@ -230,7 +246,7 @@ class FriendDeclineRequestView(LoginRequiredMixin, View):
         Notification.objects.create(
             type=Notification.NotificationType.FRIEND_REQUEST_DECLINED,
             user=request_received.sender,
-            notification_user=request.user,
+            notification_user=user,
         )
 
         messages.success(
@@ -245,7 +261,7 @@ class FriendBlockedListView(LoginRequiredMixin, ListView):
     context_object_name = "friends_blocked"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[User]:
         return self.model.objects.filter(
             Q(
                 sent_friendships__friend=self.request.user,
@@ -259,11 +275,13 @@ class FriendBlockedListView(LoginRequiredMixin, ListView):
 
 
 class FriendUnblockView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponseRedirect:
+        user = cast(User, request.user)
+
         friend = get_object_or_404(User, pk=pk)
         friendship = Friendship.objects.filter(
-            Q(user=request.user) & Q(friend=friend) & Q(blocked_by=request.user)
-            | Q(user=friend) & Q(friend=request.user) & Q(blocked_by=request.user)
+            Q(user=user) & Q(friend=friend) & Q(blocked_by=user)
+            | Q(user=friend) & Q(friend=user) & Q(blocked_by=user)
         ).first()
 
         if not friendship:
@@ -275,7 +293,7 @@ class FriendUnblockView(LoginRequiredMixin, View):
         Notification.objects.create(
             type=Notification.NotificationType.USER_UNBLOCK,
             user=friend,
-            notification_user=request.user,
+            notification_user=user,
         )
 
         messages.success(request, f"You successfully unblocked {friend.username}!")
@@ -288,7 +306,7 @@ class FriendBlockedByListView(LoginRequiredMixin, ListView):
     context_object_name = "friends_blocked_by"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[User]:
         return self.model.objects.filter(
             Q(
                 sent_friendships__friend=self.request.user,
@@ -307,21 +325,23 @@ class FriendSearchView(LoginRequiredMixin, ListView):
     context_object_name = "users"
     paginate_by = 10
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[User]:
+        user = cast(User, self.request.user)
+
         queryset = (
-            self.model.objects.exclude(pk=self.request.user.pk)
+            self.model.objects.exclude(pk=user.pk)
             .annotate(
                 is_friend=Exists(
                     Friendship.objects.filter(
                         Q(status=Friendship.FriendshipStatus.ACTIVE),
-                        Q(user=self.request.user, friend=OuterRef("pk"))
-                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                        Q(user=user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=user),
                     )
                 ),
                 request_sent_to=Exists(
                     FriendRequest.objects.filter(
                         status=FriendRequest.RequestStatus.PENDING,
-                        sender=self.request.user,
+                        sender=user,
                         receiver=OuterRef("pk"),
                     )
                 ),
@@ -329,21 +349,21 @@ class FriendSearchView(LoginRequiredMixin, ListView):
                     FriendRequest.objects.filter(
                         status=FriendRequest.RequestStatus.PENDING,
                         sender=OuterRef("pk"),
-                        receiver=self.request.user,
+                        receiver=user,
                     )
                 ),
                 blocked=Exists(
                     Friendship.objects.filter(
-                        Q(blocked_by=self.request.user),
-                        Q(user=self.request.user, friend=OuterRef("pk"))
-                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                        Q(blocked_by=user),
+                        Q(user=user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=user),
                     )
                 ),
                 blocked_by=Exists(
                     Friendship.objects.filter(
                         Q(blocked_by=OuterRef("pk")),
-                        Q(user=self.request.user, friend=OuterRef("pk"))
-                        | Q(user=OuterRef("pk"), friend=self.request.user),
+                        Q(user=user, friend=OuterRef("pk"))
+                        | Q(user=OuterRef("pk"), friend=user),
                     )
                 ),
             )
@@ -362,15 +382,17 @@ class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     model = FriendRequest
     template_name = "friendships/friend_send_request.html"
 
-    def get_success_url(self):
-        return reverse_lazy("friend_search")
+    def get_success_url(self) -> str:
+        return reverse("friend_search")
 
-    def setup(self, request, *args, **kwargs):
+    def setup(self, request: HttpRequest, *args: Any, **kwargs: Any) -> None:
         super().setup(request, *args, **kwargs)
         self.friend = get_object_or_404(User, pk=kwargs.get("pk"))
 
-    def test_func(self):
-        is_user = self.request.user == self.friend
+    def test_func(self) -> bool:
+        user = cast(User, self.request.user)
+
+        is_user = user == self.friend
 
         has_friendship = Friendship.objects.filter(
             Q(
@@ -379,36 +401,36 @@ class FriendSendRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
                     Friendship.FriendshipStatus.ACTIVE,
                 ]
             ),
-            Q(user=self.request.user, friend=self.friend)
-            | Q(user=self.friend, friend=self.request.user),
+            Q(user=user, friend=self.friend) | Q(user=self.friend, friend=user),
         ).exists()
 
         has_request = FriendRequest.objects.filter(
             Q(status=FriendRequest.RequestStatus.PENDING),
-            Q(sender=self.request.user, receiver=self.friend)
-            | Q(sender=self.friend, receiver=self.request.user),
+            Q(sender=user, receiver=self.friend) | Q(sender=self.friend, receiver=user),
         ).exists()
 
         return not (is_user or has_friendship or has_request)
 
-    def handle_no_permission(self):
+    def handle_no_permission(self) -> HttpResponseRedirect:
         messages.error(self.request, "You can't send request to this user!")
         return redirect("friend_search")
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict:
         context = super().get_context_data(**kwargs)
         context["friend"] = self.friend
         return context
 
-    def form_valid(self, form):
+    def form_valid(self, form: FriendRequestForm) -> HttpResponse:
+        user = cast(User, self.request.user)
+
         form.instance.status = FriendRequest.RequestStatus.PENDING
-        form.instance.sender = self.request.user
+        form.instance.sender = user
         form.instance.receiver = self.friend
 
         Notification.objects.create(
             type=Notification.NotificationType.FRIEND_REQUEST_RECEIVED,
             user=self.friend,
-            notification_user=self.request.user,
+            notification_user=user,
         )
 
         messages.success(

@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User
+from typing import Any
+
 from django.core.management import BaseCommand
 from django.db import transaction
 
@@ -8,7 +9,7 @@ from notifications.models import Notification
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write("Declining request(s)...")
 
         self._decline_requests()
@@ -16,7 +17,7 @@ class Command(BaseCommand):
         self.stdout.write("Successfully declined all requests!")
 
     @transaction.atomic
-    def _decline_requests(self):
+    def _decline_requests(self) -> None:
         requests = list(
             FriendRequest.objects.filter(status=FriendRequest.RequestStatus.PENDING)
         )

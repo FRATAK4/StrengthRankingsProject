@@ -1,4 +1,5 @@
 import random
+from typing import Any
 
 from django.core.management import BaseCommand
 from django.db import transaction
@@ -10,7 +11,7 @@ from notifications.models import Notification
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write("Kicking friend(s)...")
 
         self._kick_friends()
@@ -18,7 +19,7 @@ class Command(BaseCommand):
         self.stdout.write("Successfully kicked all friends!")
 
     @transaction.atomic
-    def _kick_friends(self):
+    def _kick_friends(self) -> None:
         friendships = Friendship.objects.filter(
             status=Friendship.FriendshipStatus.ACTIVE
         )

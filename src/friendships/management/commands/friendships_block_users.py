@@ -1,4 +1,6 @@
 import random
+from argparse import ArgumentParser
+from typing import Any
 
 from django.contrib.auth.models import User
 from django.core.management import BaseCommand
@@ -12,10 +14,10 @@ from notifications.models import Notification
 
 
 class Command(BaseCommand):
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("count", type=int, default=1)
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         count = options["count"]
         users = User.objects.select_related("profile")
 
@@ -30,7 +32,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Successfully blocked user(s)!")
 
     @transaction.atomic
-    def _block_users(self, count, user):
+    def _block_users(self, count: int, user: User) -> int:
         available_users = list(
             User.objects.exclude(
                 Q(
