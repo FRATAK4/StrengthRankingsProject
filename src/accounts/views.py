@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 from django.views.generic import DetailView, TemplateView, RedirectView
 from django.contrib.auth.models import User
-from multi_form_view import MultiModelFormView
+from multi_form_view import MultiModelFormView  # type: ignore
 
 from .forms import UserCreateForm, ProfileCreateForm
 
