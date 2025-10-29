@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management import BaseCommand
 from django.db import transaction
 
@@ -5,7 +7,7 @@ from groups.models import GroupAddRequest, GroupMembership
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write("Accepting request(s)...")
 
         self._accept_requests()
@@ -13,7 +15,7 @@ class Command(BaseCommand):
         self.stdout.write("Successfully accepted all requests!")
 
     @transaction.atomic
-    def _accept_requests(self):
+    def _accept_requests(self) -> None:
         join_requests = GroupAddRequest.objects.filter(
             status=GroupAddRequest.RequestStatus.PENDING
         )

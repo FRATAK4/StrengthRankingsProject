@@ -1,7 +1,10 @@
+from typing import Any, cast
 from django.contrib import messages
-from django.db import transaction
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q, Count
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models import Q, Count, QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -11,35 +14,36 @@ from django.views.generic import (
     TemplateView,
 )
 
-from groups.forms import GroupForm, GroupAddRequestForm
+from groups.forms import GroupForm
 from groups.models import Group, GroupMembership, GroupAddRequest
 
 
 class GroupDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "groups/group_crud/group_dashboard.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data()
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        user = cast(User, self.request.user)
+        context = super().get_context_data(**kwargs)
 
-        groups_hosted = self.request.user.groups_hosted.with_member_count()
+        groups_hosted = user.groups_hosted.with_member_count()
 
         groups_joined = (
             Group.objects.with_member_count()
             .filter(
                 user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
-                user_memberships__user=self.request.user,
+                user_memberships__user=user,
             )
-            .exclude(admin_user=self.request.user)
+            .exclude(admin_user=user)
         )
 
         groups_blocked = Group.objects.with_member_count().filter(
             user_memberships__status=GroupMembership.MembershipStatus.BLOCKED,
-            user_memberships__user=self.request.user,
+            user_memberships__user=user,
         )
 
         groups_pending = Group.objects.with_member_count().filter(
             user_add_requests__status=GroupAddRequest.RequestStatus.PENDING,
-            user_add_requests__user=self.request.user,
+            user_add_requests__user=user,
         )
 
         context["groups_hosted"] = groups_hosted
@@ -53,19 +57,21 @@ class GroupDashboardView(LoginRequiredMixin, TemplateView):
 class GroupCreateView(LoginRequiredMixin, CreateView):
     form_class = GroupForm
     template_name = "groups/group_crud/group_create.html"
+    object: Group
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
     @transaction.atomic
-    def form_valid(self, form):
-        form.instance.admin_user = self.request.user
+    def form_valid(self, form: GroupForm) -> HttpResponse:
+        user = cast(User, self.request.user)
+        form.instance.admin_user = user
 
         response = super().form_valid(form)
 
         GroupMembership.objects.create(
             status=GroupMembership.MembershipStatus.ACCEPTED,
-            user=self.request.user,
+            user=user,
             group=self.object,
         )
 
@@ -82,11 +88,12 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     template_name = "groups/group_crud/group_detail.html"
     context_object_name = "group"
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Group]:
+        user = cast(User, self.request.user)
         return (
             self.model.objects.with_member_count()
             .filter(
-                user_memberships__user=self.request.user,
+                user_memberships__user=user,
                 user_memberships__status=GroupMembership.MembershipStatus.ACCEPTED,
             )
             .annotate(
@@ -106,10 +113,11 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
             .select_related("admin_user__profile")
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        user = cast(User, self.request.user)
         context = super().get_context_data(**kwargs)
 
-        is_admin = self.request.user == self.object.admin_user
+        is_admin = user == self.object.admin_user
 
         context["is_admin"] = is_admin
         context["host_view"] = self.request.GET.get("host_view") == "true" and is_admin
@@ -123,20 +131,21 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "groups/group_crud/group_edit.html"
     context_object_name = "group"
 
-    def get_queryset(self):
-        return self.model.objects.filter(admin_user=self.request.user)
+    def get_queryset(self) -> QuerySet[Group]:
+        user = cast(User, self.request.user)
+        return self.model.objects.filter(admin_user=user)
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse("group_detail", kwargs={"pk": self.object.pk})
 
-    def form_valid(self, form):
+    def form_valid(self, form: GroupForm) -> HttpResponse:
         messages.success(
             self.request,
             f"Group '{self.object.name}' updated successfully!",
         )
         return super().form_valid(form)
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: GroupForm) -> HttpResponse:
         messages.error(
             self.request,
             "There was an error updating the group.",
@@ -148,13 +157,14 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
     template_name = "groups/group_crud/group_confirm_delete.html"
 
-    def get_queryset(self):
-        return self.request.user.groups_hosted.all()
+    def get_queryset(self) -> QuerySet[Group]:
+        user = cast(User, self.request.user)
+        return user.groups_hosted.all()
 
-    def get_success_url(self):
-        return reverse_lazy("group_dashboard")
+    def get_success_url(self) -> str:
+        return reverse("group_dashboard")
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         group_name = self.get_object().name
         response = super().delete(request, *args, **kwargs)
         messages.success(

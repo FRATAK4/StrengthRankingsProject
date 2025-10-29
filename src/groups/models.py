@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 
 
 class GroupManager(models.Manager):
-    def with_member_count(self):
-        return self.get_queryset().annotate(
+    def with_member_count(self) -> QuerySet[Group]:
+        return self.get_queryset().annotate(  # type: ignore[no-any-return]
             member_count=Count(
                 "user_memberships",
                 filter=Q(
@@ -25,7 +27,7 @@ class Group(models.Model):
     )
     objects = GroupManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name}"
 
 
