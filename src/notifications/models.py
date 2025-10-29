@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 from groups.models import Group
+from typing import cast
 
 
 class Notification(models.Model):
@@ -44,45 +45,48 @@ class Notification(models.Model):
         ordering = ["-received_at"]
 
     @property
-    def message(self):
+    def message(self) -> str:
+        notification_user = cast(User, self.notification_user)
+        notification_group = cast(Group, self.notification_group)
+
         match self.type:
             case self.NotificationType.FRIEND_REQUEST_RECEIVED:
-                return f"{self.notification_user} has sent you a friendship request"
+                return f"{notification_user} has sent you a friendship request"
             case self.NotificationType.FRIEND_REQUEST_ACCEPTED:
-                return f"{self.notification_user} has accepted your friendship request"
+                return f"{notification_user} has accepted your friendship request"
             case self.NotificationType.FRIEND_REQUEST_DECLINED:
-                return f"{self.notification_user} has declined your friendship request"
+                return f"{notification_user} has declined your friendship request"
             case self.NotificationType.USER_KICK:
-                return f"{self.notification_user} has kicked you from friends"
+                return f"{notification_user} has kicked you from friends"
             case self.NotificationType.USER_BLOCK:
-                return f"{self.notification_user} has blocked you"
+                return f"{notification_user} has blocked you"
             case self.NotificationType.USER_UNBLOCK:
-                return f"{self.notification_user} has unblocked you"
+                return f"{notification_user} has unblocked you"
             case self.NotificationType.GROUP_REQUEST_RECEIVED:
-                return f"{self.notification_user} wants to join to your {self.notification_group} group"
+                return f"{notification_user} wants to join to your {notification_group} group"
             case self.NotificationType.GROUP_REQUEST_ACCEPTED:
-                return f"{self.notification_user} has accepted your request to join {self.notification_group} group"
+                return f"{notification_user} has accepted your request to join {notification_group} group"
             case self.NotificationType.GROUP_REQUEST_DECLINED:
-                return f"{self.notification_user} has declined your request to join {self.notification_group} group"
+                return f"{notification_user} has declined your request to join {notification_group} group"
             case self.NotificationType.GROUP_KICK:
-                return f"{self.notification_user} has kicked you from {self.notification_group} group"
+                return f"{notification_user} has kicked you from {notification_group} group"
             case self.NotificationType.GROUP_BLOCK:
-                return f"{self.notification_user} has blocked you from {self.notification_group} group"
+                return f"{notification_user} has blocked you from {notification_group} group"
             case self.NotificationType.GROUP_UNBLOCK:
-                return f"{self.notification_user} has unblocked you from {self.notification_group} group"
+                return f"{notification_user} has unblocked you from {notification_group} group"
         return "Notification"
 
     @property
-    def url(self):
+    def url(self) -> str | None:
+        notification_group = cast(Group, self.notification_group)
+
         match self.type:
             case self.NotificationType.FRIEND_REQUEST_RECEIVED:
                 return reverse("friend_request_received_list")
             case self.NotificationType.GROUP_REQUEST_RECEIVED:
                 return reverse(
-                    "group_request_list", kwargs={"pk": self.notification_group.pk}
+                    "group_request_list", kwargs={"pk": notification_group.pk}
                 )
             case self.NotificationType.GROUP_REQUEST_ACCEPTED:
-                return reverse(
-                    "group_detail", kwargs={"pk": self.notification_group.pk}
-                )
+                return reverse("group_detail", kwargs={"pk": notification_group.pk})
         return None
