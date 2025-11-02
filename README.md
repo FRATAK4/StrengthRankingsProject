@@ -12,11 +12,26 @@ StrengthRankings is a social fitness platform designed to help fitness enthusias
 
 ## 📸 Screenshots
 
-[Paste main dashboard screenshot here]
+<table border="0" style="border: none;">
+  <tr>
+    <td align="center" valign="top" width="50%" style="border: none; padding: 5px;">
+      <img src="https://github.com/user-attachments/assets/84f6c822-e0fc-4abc-9918-9d4b00855a8a" width="100%">
+    </td>
+    <td align="center" valign="top" width="50%" style="border: none; padding: 5px;">
+      <img src="https://github.com/user-attachments/assets/791aa679-eba8-4a8f-afe1-7645f3696464" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%" style="border: none; padding: 5px;">
+      <img src="https://github.com/user-attachments/assets/54cb5c73-1acb-468f-a3bb-13013219a8f2" width="100%">
+    </td>
+    <td align="center" valign="top" width="50%" style="border: none; padding: 5px;">
+      <img src="https://github.com/user-attachments/assets/f0fa3e93-9b37-4af2-9f4e-746ad9fb9464" width="100%">
+    </td>
+  </tr>
+</table>
 
-[Paste groups or friends page screenshot here]
-
-[Paste training plan screenshot here]
+*Modern dark-themed interface with comprehensive fitness tracking features*
 
 ## ✨ Features
 
