@@ -3,7 +3,9 @@
 A comprehensive Django-based fitness tracking web application that enables users to create communities, track workouts, manage training plans, and compete in exercise rankings.
 
 ![Django](https://img.shields.io/badge/Django-4.2-green.svg)
-![Python](https://img.shields.io/badge/Python-3.11-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.13-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue.svg)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)
 
 ## 🎯 Overview
@@ -78,20 +80,20 @@ StrengthRankings is a social fitness platform designed to help fitness enthusias
 - 🏆 Group exercise rankings and leaderboards
 - ⭐ Training plan marketplace with ratings
 - 📈 Progress visualization and statistics
-- 🔌 GraphQL API
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Python 3.11, Django 4.2
+- **Backend:** Python 3.13, Django 4.2
+- **Database:** PostgreSQL 16
+- **Containerization:** Docker, Docker Compose
 - **Frontend:** Bootstrap 5, HTML5, CSS3, JavaScript
 - **Type Checking:** mypy
 - **Version Control:** Git, GitHub
 
 ## 📋 Prerequisites
 
-- Python 3.11 or higher
-- pip package manager
-- Virtual environment (recommended)
+- Docker
+- Docker Compose
 
 ## 🚀 Installation
 
@@ -102,52 +104,23 @@ git clone https://github.com/FRATAK4/StrengthRankings.git
 cd StrengthRankings
 ```
 
-### 2. Create and activate virtual environment
+### 2. Build and run with Docker
 
 ```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# Linux/Mac
-python3 -m venv venv
-source venv/bin/activate
+docker-compose up --build
 ```
 
-### 3. Install dependencies
+### 3. Create superuser (in a new terminal)
 
 ```bash
-pip install -r requirements.txt
+docker-compose exec app python manage.py createsuperuser
 ```
 
-### 4. Run migrations
+### 4. Access the application
 
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
+Visit `http://localhost:8000` to see the application.
 
-### 5. Create superuser
-
-```bash
-python manage.py createsuperuser
-```
-
-### 6. Collect static files
-
-```bash
-python manage.py collectstatic
-```
-
-### 7. Run development server
-
-```bash
-python manage.py runserver
-```
-
-Visit `http://127.0.0.1:8000` to see the application.
-
-## 🏗️ Project Structure
+## 🗂️ Project Structure
 
 ```
 StrengthRankingsProject/
@@ -161,30 +134,16 @@ StrengthRankingsProject/
 │   ├── groups/              # Group management and permissions
 │   ├── notifications/       # Notification system
 │   ├── training_plans/      # Training plans management
-│   └── workout_performance/ # Workout filling
+│   ├── workout_performance/ # Workout tracking
+│   ├── .env                 # Environment variables
+│   └── manage.py            # Django management script
+├── .gitignore
+├── .pre-commit-config.yaml  # Pre-commit hooks configuration
+├── Dockerfile               # Docker image configuration
+├── docker-compose.yaml      # Multi-container configuration
+├── requirements.txt         # Python dependencies
+└── README.md
 ```
-
-## 🔧 Development
-
-### Code Style
-
-The project follows PEP 8 guidelines and uses:
-- Type hints for better code documentation
-- Class-based views for consistency
-- Django best practices for security
-
-### Database Schema
-
-Key models include:
-- `User` - Extended Django user model
-- `Profile` - User profile information
-- `Friendship` - Bidirectional friend relationships
-- `Group` - Fitness communities
-- `GroupMembership` - User-group relationships with roles
-- `TrainingPlan` - Workout plan templates
-- `Workout` - Individual workout sessions
-- `Exercise` - Exercise definitions
-- `Notification` - User notifications
 
 ## 👤 Author
 
