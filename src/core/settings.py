@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEBUG = os.getenv("DEBUG")
+SECRET_KEY = os.getenv("SECRET_KEY")
+
 ALLOWED_HOSTS: list[str] = []
 
 
@@ -65,11 +68,11 @@ WSGI_APPLICATION = "core.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "strength_rankings"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASS", "pass"),
-        "HOST": os.getenv("DB_HOST", "db"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASS"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
